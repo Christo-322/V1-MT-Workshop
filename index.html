@@ -486,7 +486,7 @@ body.hasnext main{padding-bottom:120px}body.hasnext .counter{bottom:84px}body.ha
 details.more{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
 details.more summary{cursor:pointer;font-weight:500;color:var(--navy2)}
 
-@media(min-width:1100px){header,#nextfix,main:not(:has(#v-play.on)){zoom:var(--z,1)}}
+@media(min-width:1100px){header,main:not(:has(#v-play.on)){zoom:var(--z,1)}#nextfix .nf-in{max-width:calc(1000px * var(--z,1))}}
 @media(min-width:1100px){main:has(#v-play.on){max-width:calc(1000px * var(--z,1))}#v-play .side,#v-play .ptop{zoom:var(--z,1)}}
 .vw-shot{width:clamp(240px,calc((100vh - 200px) * .46 / var(--z,1)),380px)}
 
@@ -521,6 +521,23 @@ details.more summary{cursor:pointer;font-weight:500;color:var(--navy2)}
 @media(max-width:700px){.tc{flex-wrap:wrap}.tc-img{display:none}.tc-act{flex-direction:row;flex-wrap:wrap;align-items:center;min-width:0;width:100%}.tc-n{text-align:left;display:flex;gap:6px;align-items:baseline}.tc-n b{display:inline;font-size:20px}}
 .hostreset{border-color:var(--red);color:var(--red)}.hostreset.armed{background:var(--red);color:#fff}
 .nmerr{display:block;margin-top:8px;color:var(--errtx);font-size:14px;min-height:20px}
+
+/* calm UI pass: blue CTAs, soft done ticks, left-aligned play panel */
+.btn.r{background:var(--navy);color:#fff;box-shadow:none}
+.btn.r:hover{background:#004a6e}
+.counter{background:var(--navy);box-shadow:0 6px 16px rgba(0,52,78,.25)}
+nav a .nn.done{background:#e3eef5;color:var(--navy2)}
+nav a.on{border-color:var(--navy)}
+.itabs button[aria-selected=true]{border-bottom-color:var(--navy)}
+.tc.top3 .tc-rank{background:var(--navy2)}
+.hostpill{background:var(--navy2)}
+.play3 .sl{text-align:left}.play3 .sl .pctl,.play3 .sl .pathbar{justify-content:flex-start}
+.play3 .sl .pctl .btn{font-size:12px;padding:6px 12px;min-height:0}
+.play3 .sl h2{font-size:18px}
+.side .step{color:var(--navy2)}
+
+.nf-in{flex-direction:row-reverse;justify-content:flex-end}
+.nextfix .btn{min-height:0;padding:8px 16px;font-size:14px}
 </style>
 </head>
 <body>
@@ -670,7 +687,7 @@ R.start=()=>{
  <p class="lead">Our money transfer flow, for you to break and fix.</p>
  <div class="card"><div class="grid g2"><div><label class="fl" for="nm">Your name</label><input type="text" id="nm" value="${esc(S.name)}" placeholder="e.g. Rufina"></div>
  <div><span class="fl">Your team</span><div class="chips" id="teams"></div></div></div>
- <div class="go" style="margin-top:14px"><button class="btn r" id="go" style="padding:15px 26px;font-size:17px">Start ▶</button><span class="nmerr" id="nmerr" role="alert"></span></div></div>
+ <div class="go" style="margin-top:14px"><button class="btn r" id="go" style="padding:12px 24px;font-size:16px">Start ▶</button><span class="nmerr" id="nmerr" role="alert"></span></div></div>
  <div class="rooms6">${[["#play","▶","Experience","Use the real app"],["#inspire","✨","Inspire","Others do it better"],["#critique","🚩","Critique","What's wrong"],["#top","🏆","Top critiques","What most said"],["#make","✏️","Make","Design a fix"],["#share","📣","Pitch","Share your idea"]].map((r,i)=>`<a class="r6" href="${r[0]}"><em>${r[1]}</em><b>${i+1}. ${r[2]}</b><span>${r[3]}</span></a>`).join("")}</div>
  <div class="rules">${["💡 Wild ideas welcome","🛠️ Any tool counts","👷 Design for our users","🤝 Critique ideas, not people"].map(x=>`<span>${x}</span>`).join("")}</div>
  <p class="small muted" style="margin-top:10px">Saved on this device as you go.</p>`;
@@ -974,7 +991,7 @@ function paintP(){const n=node();if(!PR.visited.includes(PR.cur))PR.visited.push
 R.play=()=>{
  $("#v-play").innerHTML=`<div class="play3">
   <div class="side sl"><span class="kick" style="margin:0 0 8px">▶ Experience</span><div class="step" id="pstep"></div><h2 id="pcap" style="margin-top:4px"></h2><p class="onsel-note muted">Pick a flow on the phone.</p><div class="pathbar" id="pbar"></div>
-   <div class="pctl"><button class="btn s" id="pback">◀ Back</button><button class="btn p" id="pnext">Next ▶</button></div>
+   <div class="pctl"><button class="btn s sm" id="pback">◀ Back</button><button class="btn p sm" id="pnext">Next ▶</button></div>
    <div class="pctl"><button class="btn s sm" id="prs">↺ Start over</button><button class="btn s sm" id="pswitch">⇄ Switch flow</button></div>
    <div id="pwhat"></div></div>
   <div class="pcol"><div class="phone" id="pphone"><div class="scr" id="pscr" style="cursor:pointer"><div id="pstage"><img id="pimg" alt=""><div id="plive"></div></div><span class="cue" id="cue"></span></div></div></div>
