@@ -536,7 +536,7 @@ nav a.on{border-color:var(--navy)}
 .play3 .sl h2{font-size:18px}
 .side .step{color:var(--navy2)}
 
-.nf-in{flex-direction:row-reverse;justify-content:flex-end}
+
 .nextfix .btn{min-height:0;padding:8px 16px;font-size:14px}
 .teambar[hidden],.cons[hidden]{display:none!important}
 
@@ -571,6 +571,16 @@ nav a.on{border-color:var(--navy)}
 .vm-like b{font-size:12px;color:var(--navy)}
 .vm figcaption{padding:8px 10px 10px;border-top:1px solid var(--line2);display:flex;flex-direction:column;gap:2px}
 .vm figcaption b{font-size:13px;color:var(--navy);line-height:1.3;font-weight:500}.vm figcaption span{font-size:11px;color:var(--muted)}
+
+/* floating Next CTA, bottom right */
+.nextfix{left:auto;right:24px;bottom:22px;background:transparent;box-shadow:none;border:0;pointer-events:none}
+.nextfix .nf-in{max-width:none!important;padding:0;flex-direction:column;align-items:flex-end;gap:6px;pointer-events:none}
+.nextfix .nf-t{order:-1;pointer-events:none}.nextfix .nf-t .small{font-size:12px;color:var(--muted);background:rgba(255,255,255,.9);border-radius:999px;padding:2px 10px}
+.nextfix .nf-t b{display:none}
+.nextfix .btn,.nextfix a{pointer-events:auto}
+.nextfix .btn{padding:12px 20px;font-size:15px;border-radius:999px;box-shadow:0 10px 26px rgba(0,52,78,.32)}
+body.hasnext .counter{bottom:96px}
+@media(max-width:700px){.nextfix{right:14px;bottom:14px}.nextfix .btn{padding:10px 16px;font-size:14px}}
 </style>
 </head>
 <body>
@@ -601,6 +611,8 @@ const CONFIG={deadline:"[deadline to confirm]",chat:"the MT workshop team chat",
  /* View-only link to the form's responses Sheet */
  SHEET:"",
  /* GitHub version only: the responses Sheet published to the web as CSV (File > Share > Publish to web > CSV) */
+ SHEET_ID:"",
+ SHEET_TAB:"Form Responses 1",
  SHEET_CSV:"https://docs.google.com/spreadsheets/d/e/2PACX-1vS3g0PaL1eoFk1i0wy2WfQtPKr1fhbR5037AaGG2eeaXd-CnYNg-g_EO6cqY36nMzqcTCONGNqArmS9/pub?output=csv",
  /* CleverTap screenshot per screen: screen id -> image path, e.g. lv09:"img/data/lv09.jpg" */
  DATA:{},
@@ -1006,7 +1018,7 @@ function paintData(){const el=$("#pdata"),tg=$("#dtogs");if(!el||!tg)return;if(!
  wireZoom(el);}
 /* phone sized to fit the first fold */
 function fitPhone(){const ph=$("#pphone"),sc=$("#pscr");if(!ph||!sc||!$("#v-play").classList.contains("on"))return;
- const mobile=innerWidth<760;const top=ph.getBoundingClientRect().top+scrollY;const nf=$("#nextfix");const bar=document.body.classList.contains("hasnext")?Math.max(62,nf&&nf.offsetParent!==null?Math.ceil(nf.getBoundingClientRect().height):0):0;
+ const mobile=innerWidth<760;const top=ph.getBoundingClientRect().top+scrollY;const nf=$("#nextfix");const bar=innerWidth>=900?8:document.body.classList.contains("hasnext")?Math.max(62,nf&&nf.offsetParent!==null?Math.ceil(nf.getBoundingClientRect().height):0):0;
  const availH=innerHeight-(mobile?Math.min(top,140):top)-bar-14;let W=Math.floor((availH-20)*360/780);
  W=Math.min(W,mobile?innerWidth-52:460);W=Math.max(W,mobile?220:190);
  sc.style.width=W+"px";sc.style.height=Math.round(W*780/360)+"px";ph.style.width=(W+20)+"px";sc.style.borderRadius=Math.round(W*0.096)+"px";ph.style.borderRadius=Math.round(W*0.096+9)+"px";
@@ -1298,7 +1310,12 @@ R.make=()=>{
 /* team critiques pasted from chat / sheet: dedupe, group by screen, count */
 let LIVE_CRIT="",LIVE_AT="",LIVE_ROWS=[],LIVE_TOTAL=0;
 function parseCSV(t){const rows=[];let r=[],f="",q=false;for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c==='"'){if(t[i+1]==='"'){f+='"';i++;}else q=false;}else f+=c;}else if(c==='"')q=true;else if(c===","){r.push(f);f="";}else if(c==="\n"){r.push(f);rows.push(r);r=[];f="";}else if(c!=="\r")f+=c;}if(f||r.length){r.push(f);rows.push(r);}return rows;}
-async function loadLive(){if(!SA||!CONFIG.SHEET_CSV)return false;try{const r=await fetch(CONFIG.SHEET_CSV+(CONFIG.SHEET_CSV.includes("?")?"&":"?")+"t="+Date.now());const rows=parseCSV(await r.text());const h=rows[0]||[];const ci=h.findIndex(x=>/critique/i.test(x));if(ci<0)return false;
+async function fetchSheet(){const bust="t="+Date.now();
+ if(CONFIG.SHEET_ID){try{const r=await fetch(`https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&headers=1&sheet=${encodeURIComponent(CONFIG.SHEET_TAB||"Form Responses 1")}&${bust}`,{cache:"no-store"});if(r.ok){const t=await r.text();if(!/^\s*</.test(t)){LIVE_SRC="live";return t;}}}catch(e){}}
+ const r=await fetch(CONFIG.SHEET_CSV+(CONFIG.SHEET_CSV.includes("?")?"&":"?")+bust,{cache:"no-store"});LIVE_SRC="published";return r.text();}
+let LIVE_SRC="",LIVE_BUSY=null;
+async function loadLive(){if(!SA||!(CONFIG.SHEET_CSV||CONFIG.SHEET_ID))return false;if(LIVE_BUSY)return LIVE_BUSY;LIVE_BUSY=loadLive2().finally(()=>{LIVE_BUSY=null;});return LIVE_BUSY;}
+async function loadLive2(){try{const rows=parseCSV(await fetchSheet());const h=rows[0]||[];const ci=h.findIndex(x=>/critique/i.test(x));if(ci<0)return false;
  const fi=re=>h.findIndex(x=>re.test(x));const ni=fi(/name/i),ti=fi(/team/i),ii=fi(/idea/i);
  let all=rows.slice(1).filter(x=>x.some(Boolean)).map(x=>({name:(x[ni]||"").trim(),team:(x[ti]||"").trim(),crit:x[ci]||"",idea:ii>=0?(x[ii]||"").trim():""}));
  LIVE_TOTAL=all.length;let rid="",cut=0;all.forEach((r,i)=>{const m=/^RESET:(\w+)/.exec(r.idea);if(m){rid=m[1];cut=i+1;}});
@@ -1376,7 +1393,7 @@ R.top=()=>{
  <div class="tstat"><span class="small muted" id="tst"></span>${SA&&CONFIG.SHEET_CSV?'<button class="btn s sm" id="trf">↻ Refresh</button>':""}${HOST?'<span class="hostpill">Host mode</span><button class="btn s sm hostreset" id="treset">⟲ Reset all</button>':""}</div>
  <div class="themes" id="tth"></div><div id="tlist"></div>`;
  const paint=()=>{const all=topGroups();const gs=all.filter(g=>HOST||!g.hidden);const ppl=new Set();all.forEach(g=>g.ppl.forEach(p=>ppl.add(p.name.toLowerCase())));
-  $("#tst").textContent=`${gs.length} critique${gs.length===1?"":"s"} from ${ppl.size} ${ppl.size===1?"person":"people"}${LIVE_AT?` · live, ${LIVE_AT}`:""}`;
+  $("#tst").textContent=`${gs.length} critique${gs.length===1?"":"s"} from ${ppl.size} ${ppl.size===1?"person":"people"}${LIVE_AT?(LIVE_SRC==="live"?` · live, ${LIVE_AT}`:` · updated ${LIVE_AT} (Google refreshes every few minutes)`):""}`;
   const th=topThemes(all);$("#tth").innerHTML=th.length?`<span class="small muted">Across screens:</span>${th.map(x=>`<span class="theme">${esc(x.label)} <b>${x.ppl.size} people</b></span>`).join("")}`:"";
   const card=(g,i)=>{const q=g.m.map(m=>`<li>“${esc(m.note)}” <span class="muted">— ${esc(m.name)}</span></li>`);
    return `<div class="tc${g.hidden?" hid":""}${i<3&&g.score>=2?" top3":""}"><div class="tc-rank">${i+1}</div>${g.sid?`<img class="tc-img" src="${img(g.sid)}" alt="">`:""}
@@ -1400,7 +1417,7 @@ R.top=()=>{
  const rb=$("#treset");if(rb)rb.onclick=()=>{if(Date.now()-resetArm>4000){resetArm=Date.now();rb.textContent="Tap again to clear everyone's critiques and votes";rb.classList.add("armed");setTimeout(()=>{if(rb.isConnected){rb.textContent="⟲ Reset all";rb.classList.remove("armed");}},4000);return;}
   resetArm=0;const id=Date.now().toString(36);clearCrit();S.resetSeen=id;S.resetPending={id,n:LIVE_TOTAL};LIVE_ROWS=[];save();
   if(SA)bgSend({name:"HOST",team:"Host",idea:"RESET:"+id}).then(()=>toast("Reset sent: everyone starts fresh")).catch(()=>toast("Reset saved here, but not sent: check the internet"));else toast("Reset on this device");paint();};
- paint();clearInterval(topIv);if(SA&&CONFIG.SHEET_CSV){pull();topIv=setInterval(()=>{if(location.hash==="#top")pull();else clearInterval(topIv);},20000);}
+ paint();clearInterval(topIv);if(SA&&(CONFIG.SHEET_CSV||CONFIG.SHEET_ID)){pull();topIv=setInterval(()=>{if(location.hash==="#top")pull();else clearInterval(topIv);},CONFIG.SHEET_ID?5000:20000);}
 };
 /* ================= FACILITATOR (#host) ================= */
 let ART=null;(async()=>{try{if(window.claude&&claude.use)ART=await claude.use("artifact");}catch(e){}})();
