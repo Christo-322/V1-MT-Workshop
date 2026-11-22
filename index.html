@@ -548,6 +548,20 @@ nav a.on{border-color:var(--navy)}
 .mi-like{position:absolute;top:8px;right:8px;display:flex;align-items:center;gap:4px;border:0;background:rgba(255,255,255,.95);border-radius:999px;padding:5px 9px;font-size:15px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)}
 .mi-like b{font-size:12px;color:var(--navy)}.mi-like.on{background:#fff}
 .mi figcaption{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.35}.mi figcaption b{color:var(--navy);font-weight:500}
+
+.mood{columns:auto}
+.mh{font-size:15px;color:var(--navy);margin:16px 0 8px}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.mc{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.mc.pat{background:#f7fafc}
+.mc-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.mc-app{font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--navy2)}
+.mc-step{font-size:11px;color:var(--muted);background:var(--tint);border-radius:999px;padding:2px 8px}
+.mc-like{display:flex;align-items:center;gap:4px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 9px;font-size:14px;cursor:pointer;flex:none}
+.mc-like b{font-size:12px;color:var(--navy)}.mc-like.on{border-color:#f3c6c6}
+.mc-t{font-size:15px;color:var(--navy);line-height:1.3}
+.mc-b{font-size:13px;color:#3a4756;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.mc-f{font-size:12px;color:var(--navy2);font-weight:500}.mc-by{font-size:12px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -1610,7 +1624,7 @@ R.inspire=()=>{
  ${CONFIG.FUNNEL?`<div class="dslot" style="margin-top:14px"><button class="dimg" data-zoom="${esc(CONFIG.FUNNEL)}" data-cap="Money transfer funnel"><img src="${esc(CONFIG.FUNNEL)}" alt="Funnel"></button></div>`:""}
  <div class="itabs" role="tablist">${TABS.map(([k,n])=>`<button role="tab" data-t="${k}">${n}</button>`).join("")}</div>
  ${TABS.map(([k])=>`<div class="ipane" id="${k}"></div>`).join("")}
- <h2 style="margin-top:34px">Moodboard</h2><p class="muted" style="margin-top:0">Every screen in one place. Tap ❤️ on the ones you love.</p>
+ <h2 style="margin-top:34px">Moodboard</h2><p class="muted" style="margin-top:0">Ideas worth stealing. Tap 🤍 on the ones you like.</p>
  <div class="chips mfil" id="mfil"></div><div class="mood" id="mood"></div>`;
  wireZoom($("#v-inspire"));
  viewer($("#asp"),ASPORA.map(([n,c,p],k)=>({src:COMP(IMGA(`img/comp/aspora-${n}.jpg`)),app:"Aspora",cap:c,good:CRIT_ASP[k][0].slice(0,1),bad:CRIT_ASP[k][1].slice(0,1)})),{strip:true});
@@ -1619,21 +1633,20 @@ R.inspire=()=>{
  viewer($("#mob"),MOBBIN.map(([a,c,st,b,u,id],k)=>({src:COMP(`img/mob/m${String(k+1).padStart(2,"0")}.jpg`),app:a,cap:c,best:b,us:u,link:`https://mobbin.com/screens/${id}`})),{strip:true});
  const show=t=>{S.insTab=t;save();document.querySelectorAll(".itabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.t===t));TABS.forEach(([k])=>$("#"+k).hidden=k!==t);};
  document.querySelectorAll(".itabs button").forEach(b=>b.onclick=()=>show(b.dataset.t));show(S.insTab);
- const MI=[...ASPORA.map(([n,c],k)=>({k:"asp-"+n,app:"Aspora",cap:c,src:COMP(IMGA(`img/comp/aspora-${n}.jpg`))})),
-  ...TAPTAP.map(([c],k)=>({k:"ttp-"+(k+1),app:"Taptap Send",cap:c,src:COMP(`img/comp/taptap-${String(k+1).padStart(2,"0")}.jpg`)})),
-  ...BOTIM.map(([c],k)=>({k:"bot-"+(k+1),app:"Botim",cap:c,src:COMP(`img/comp/botim-${String(k+1).padStart(2,"0")}.jpg`)})),
-  ...MOBBIN.map(([a,c],k)=>({k:"mob-"+(k+1),app:a,cap:c,best:1,src:COMP(`img/mob/m${String(k+1).padStart(2,"0")}.jpg`)}))];
- const F=[["all","All"],["Aspora","Aspora"],["Taptap Send","Taptap Send"],["Botim","Botim"],["best","⭐ Best in world"],["top","❤️ Most liked"]];
- if(!S.moodF)S.moodF="all";
+ const MI=[...INSIGHTS.map((x,i)=>({k:"ins-"+i,kind:"app",app:x.app,t:x.t,b:x.b,f:x.f})),
+  ...Object.entries(STEPS).flatMap(([sk,st])=>st.pat.map((p,i)=>({k:`pat-${sk}-${i}`,kind:"pat",app:p[1],t:p[0],step:st.t})))];
+ const F=[["all","All"],["app","What the best apps do"],["pat","Ideas per step"],["top","❤️ Most liked"]];
+ if(!S.moodF||!F.some(f=>f[0]===S.moodF))S.moodF="all";
  $("#mfil").innerHTML=F.map(([k,n])=>`<button class="chip" data-f="${k}">${n}</button>`).join("");
- const paintMood=()=>{const L=likeCounts();document.querySelectorAll("#mfil .chip").forEach(b=>b.setAttribute("aria-pressed",b.dataset.f===S.moodF));
-  let arr=MI.filter(m=>S.moodF==="all"||S.moodF==="top"||(S.moodF==="best"?m.best:m.app===S.moodF&&!m.best));
-  if(S.moodF==="top")arr=arr.filter(m=>(L[m.k]||0)>0).sort((a,b)=>(L[b.k]||0)-(L[a.k]||0));
-  const mine=new Set(S.likes||[]);
-  $("#mood").innerHTML=arr.length?arr.map(m=>`<figure class="mi"><button class="mi-im" data-z="${m.k}"><img src="${m.src}" alt="" loading="lazy"></button>
-   <button class="mi-like${mine.has(m.k)?" on":""}" data-l="${m.k}" aria-label="Like">${mine.has(m.k)?"❤️":"🤍"}<b>${L[m.k]||""}</b></button>
-   <figcaption><b>${esc(m.app)}</b> · ${esc(m.cap)}</figcaption></figure>`).join(""):`<div class="notice">No likes yet. Tap 🤍 on a screen.</div>`;
-  $("#mood").querySelectorAll("[data-z]").forEach(b=>b.onclick=()=>{const m=MI.find(x=>x.k===b.dataset.z);zoom(m.src,m.app+": "+m.cap);});
+ const paintMood=()=>{const L=likeCounts(),mine=new Set(S.likes||[]);document.querySelectorAll("#mfil .chip").forEach(b=>b.setAttribute("aria-pressed",b.dataset.f===S.moodF));
+  const card=m=>`<div class="mc ${m.kind}"><div class="mc-top">${m.kind==="pat"?`<span class="mc-step">${esc(m.step)}</span>`:`<span class="mc-app">${esc(m.app)}</span>`}
+   <button class="mc-like${mine.has(m.k)?" on":""}" data-l="${m.k}" aria-label="Like">${mine.has(m.k)?"❤️":"🤍"}<b>${L[m.k]||""}</b></button></div>
+   <b class="mc-t">${esc(m.t)}</b>${m.kind==="app"?`<span class="mc-b">${esc(m.b)}</span><span class="mc-f">Could help: ${esc(m.f)}</span>`:`<span class="mc-by">${esc(m.app)}</span>`}</div>`;
+  let html="";
+  if(S.moodF==="top"){const arr=MI.filter(m=>(L[m.k]||0)>0).sort((a,b)=>(L[b.k]||0)-(L[a.k]||0));html=arr.length?`<div class="mgrid">${arr.map(card).join("")}</div>`:`<div class="notice">No likes yet. Tap 🤍 on an idea.</div>`;}
+  else{if(S.moodF!=="pat")html+=`<h3 class="mh">What the best apps do</h3><div class="mgrid">${MI.filter(m=>m.kind==="app").map(card).join("")}</div>`;
+   if(S.moodF!=="app")html+=`<h3 class="mh">Ideas per step</h3><div class="mgrid">${MI.filter(m=>m.kind==="pat").map(card).join("")}</div>`;}
+  $("#mood").innerHTML=html;
   $("#mood").querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{const k=b.dataset.l;if(!S.likes)S.likes=[];const on=S.likes.includes(k);
    S.likes=on?S.likes.filter(x=>x!==k):[...S.likes,k];save();if(SA)bgSend(Object.assign(who(),{idea:(on?"UNLIKE:":"LIKE:")+k})).catch(()=>{});paintMood();});};
  document.querySelectorAll("#mfil .chip").forEach(b=>b.onclick=()=>{S.moodF=b.dataset.f;save();paintMood();});
