@@ -1594,7 +1594,6 @@ R.inspire=()=>{
  if(!S.insTab)S.insTab="asp";
  $("#v-inspire").innerHTML=`<h1>What others do better</h1>
  <p class="lead">Swipe through real screens. Steal what works.</p>
- <div class="nums">${NUMS.map(n=>`<div class="num"><b>${esc(n[0])}</b><span>${esc(n[1])}</span></div>`).join("")}</div>
  ${CONFIG.FUNNEL?`<div class="dslot" style="margin-top:14px"><button class="dimg" data-zoom="${esc(CONFIG.FUNNEL)}" data-cap="Money transfer funnel"><img src="${esc(CONFIG.FUNNEL)}" alt="Funnel"></button></div>`:""}
  <div class="itabs" role="tablist">${TABS.map(([k,n])=>`<button role="tab" data-t="${k}">${n}</button>`).join("")}</div>
  ${TABS.map(([k])=>`<div class="ipane" id="${k}"></div>`).join("")}`;
