@@ -519,6 +519,7 @@ details.more summary{cursor:pointer;font-weight:500;color:var(--navy2)}
 .tc-n{text-align:center}.tc-n b{display:block;font-size:26px;line-height:1;color:var(--navy)}.tc-n span{font-size:12px;color:var(--muted)}.tc-n small{display:block;font-size:11px;color:var(--muted)}
 .tc-you{text-align:center}
 @media(max-width:700px){.tc{flex-wrap:wrap}.tc-img{display:none}.tc-act{flex-direction:row;flex-wrap:wrap;align-items:center;min-width:0;width:100%}.tc-n{text-align:left;display:flex;gap:6px;align-items:baseline}.tc-n b{display:inline;font-size:20px}}
+.hostreset{border-color:var(--red);color:var(--red)}.hostreset.armed{background:var(--red);color:#fff}
 </style>
 </head>
 <body>
@@ -1240,7 +1241,10 @@ let LIVE_CRIT="",LIVE_AT="",LIVE_ROWS=[];
 function parseCSV(t){const rows=[];let r=[],f="",q=false;for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c==='"'){if(t[i+1]==='"'){f+='"';i++;}else q=false;}else f+=c;}else if(c==='"')q=true;else if(c===","){r.push(f);f="";}else if(c==="\n"){r.push(f);rows.push(r);r=[];f="";}else if(c!=="\r")f+=c;}if(f||r.length){r.push(f);rows.push(r);}return rows;}
 async function loadLive(){if(!SA||!CONFIG.SHEET_CSV)return false;try{const r=await fetch(CONFIG.SHEET_CSV+(CONFIG.SHEET_CSV.includes("?")?"&":"?")+"t="+Date.now());const rows=parseCSV(await r.text());const h=rows[0]||[];const ci=h.findIndex(x=>/critique/i.test(x));if(ci<0)return false;
  const fi=re=>h.findIndex(x=>re.test(x));const ni=fi(/name/i),ti=fi(/team/i),ii=fi(/idea/i);
- LIVE_ROWS=rows.slice(1).filter(x=>x.some(Boolean)).map(x=>({name:(x[ni]||"").trim(),team:(x[ti]||"").trim(),crit:x[ci]||"",idea:ii>=0?(x[ii]||"").trim():""}));
+ let all=rows.slice(1).filter(x=>x.some(Boolean)).map(x=>({name:(x[ni]||"").trim(),team:(x[ti]||"").trim(),crit:x[ci]||"",idea:ii>=0?(x[ii]||"").trim():""}));
+ let rid="";all.forEach((r,i)=>{const m=/^RESET:(\w+)/.exec(r.idea);if(m){rid=m[1];all.__cut=i+1;}});if(all.__cut)all=all.slice(all.__cut);
+ if(rid&&S.resetSeen!==rid){const had=S.resetSeen!==undefined||Object.keys(S.flags||{}).length;if(had&&S.resetSeen!==rid)clearCrit();S.resetSeen=rid;save();}else if(!rid&&S.resetSeen===undefined){S.resetSeen="";save();}
+ LIVE_ROWS=all;
  LIVE_CRIT=LIVE_ROWS.map(x=>x.crit).filter(Boolean).join("\n");LIVE_AT=new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});return true;}catch(e){return false;}}
 function teamCrit(){return mergeCrit([S.teamRaw||"",LIVE_CRIT,...(CONFIG.TEAM_CRITIQUES||[])].join("\n"));}
 function mergeCrit(raw){const caps=Object.values(CAP).filter(Boolean).sort((a,b)=>b.length-a.length);const m=new Map();
@@ -1295,10 +1299,11 @@ function topGroups(){
 function topThemes(groups){const t=new Map();groups.filter(g=>!g.hidden).forEach(g=>g.m.forEach(m=>{const k=normT(m.note);if(k.split(" ").length>4)return;if(!t.has(k))t.set(k,{label:m.note,ppl:new Set(),scr:new Set()});const x=t.get(k);x.ppl.add(m.name.toLowerCase());x.scr.add(g.scr);}));
  return [...t.values()].filter(x=>x.ppl.size>=2&&x.scr.size>=2).sort((a,b)=>b.ppl.size-a.ppl.size).slice(0,6);}
 function pickGroup(g){S.pick={l:1,t:(g.scr?g.scr+": ":"")+g.head};if(g.sid){S.fix=g.sid;S.fixJ=FIXJ.wallet.s.some(x=>x[0]===g.sid)&&!FIXJ.india.s.some(x=>x[0]===g.sid)?"wallet":"india";}S.card=Object.assign(S.card||{},{problem:g.head,fix:""});save();}
-let topIv=null;
+function clearCrit(){S.flags=Object.fromEntries(Object.entries(S.flags||{}).filter(([k])=>k.startsWith("play:")));S.sent={};S.votes=[];S.hidden=[];S.teamRaw="";if(S.pick&&S.pick.l===1)S.pick=null;save();}
+let topIv=null,resetArm=0;
 R.top=()=>{
  $("#v-top").innerHTML=`<h1>Top critiques</h1><p class="lead">Same point from different people, merged. Tap 👍 on the ones you agree with.</p>
- <div class="tstat"><span class="small muted" id="tst"></span>${SA&&CONFIG.SHEET_CSV?'<button class="btn s sm" id="trf">↻ Refresh</button>':""}${HOST?'<span class="hostpill">Host mode</span>':""}</div>
+ <div class="tstat"><span class="small muted" id="tst"></span>${SA&&CONFIG.SHEET_CSV?'<button class="btn s sm" id="trf">↻ Refresh</button>':""}${HOST?'<span class="hostpill">Host mode</span><button class="btn s sm hostreset" id="treset">⟲ Reset all</button>':""}</div>
  <div class="themes" id="tth"></div><div id="tlist"></div>`;
  const paint=()=>{const all=topGroups();const gs=all.filter(g=>HOST||!g.hidden);const ppl=new Set();all.forEach(g=>g.ppl.forEach(p=>ppl.add(p.name.toLowerCase())));
   $("#tst").textContent=`${gs.length} critique${gs.length===1?"":"s"} from ${ppl.size} ${ppl.size===1?"person":"people"}${LIVE_AT?` · live, ${LIVE_AT}`:""}`;
@@ -1322,6 +1327,9 @@ R.top=()=>{
    if(un){S.hidden=S.hidden.filter(h=>!g.hs.has(h));}else S.hidden.push(g.vh);save();if(SA)bgSend({name:"HOST",team:"Host",idea:(un?"UNHIDE:":"HIDE:")+g.vh}).catch(()=>{});setTimeout(paint,0);});};
  const pull=()=>loadLive().then(()=>{if(location.hash==="#top")paint();});
  const rf=$("#trf");if(rf)rf.onclick=()=>{pull();toast("Refreshing…");};
+ const rb=$("#treset");if(rb)rb.onclick=()=>{if(Date.now()-resetArm>4000){resetArm=Date.now();rb.textContent="Tap again to clear everyone's critiques and votes";rb.classList.add("armed");setTimeout(()=>{if(rb.isConnected){rb.textContent="⟲ Reset all";rb.classList.remove("armed");}},4000);return;}
+  resetArm=0;const id=Date.now().toString(36);clearCrit();S.resetSeen=id;LIVE_ROWS=[];save();
+  if(SA)bgSend({name:"HOST",team:"Host",idea:"RESET:"+id}).then(()=>toast("Reset sent: everyone starts fresh")).catch(()=>toast("Reset saved here, but not sent: check the internet"));else toast("Reset on this device");paint();};
  paint();clearInterval(topIv);if(SA&&CONFIG.SHEET_CSV){pull();topIv=setInterval(()=>{if(location.hash==="#top")pull();else clearInterval(topIv);},20000);}
 };
 /* ================= FACILITATOR (#host) ================= */
@@ -1591,7 +1599,7 @@ function rev(){const a=answers();
  $("#rev").innerHTML=[["Name",`${a.name||"(add on Start)"} · ${a.team||"-"}`],["🚩 Critiques ("+critLines().length+")",a.critique||"-"],["💡 Idea card",a.idea||"-"],["Worth your time",a.pulse||"-"]].map(r=>`<dt>${esc(r[0])}</dt><dd style="white-space:pre-line">${esc(r[1])}</dd>`).join("");
  const b=sendBtn(["name","team","idea","pulse"],()=>a.idea||plain(),"📤 Send my idea card","");$("#sub").innerHTML=`<div class="sendbar">${b.html}</div>`;b.wire();}
 
-updCounter();route();
+updCounter();route();if(SA&&CONFIG.SHEET_CSV)loadLive().then(()=>{try{refreshFlags();}catch(e){}});
 </script>
 <script>(function(){const f=()=>{const w=innerWidth,z=w<1100?1:Math.max(1,Math.min(1.5,(w-60)/1060));document.documentElement.style.setProperty("--z",z.toFixed(3));};f();addEventListener("resize",f);})();</script>
 </body>
