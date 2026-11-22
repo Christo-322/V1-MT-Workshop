@@ -520,6 +520,7 @@ details.more summary{cursor:pointer;font-weight:500;color:var(--navy2)}
 .tc-you{text-align:center}
 @media(max-width:700px){.tc{flex-wrap:wrap}.tc-img{display:none}.tc-act{flex-direction:row;flex-wrap:wrap;align-items:center;min-width:0;width:100%}.tc-n{text-align:left;display:flex;gap:6px;align-items:baseline}.tc-n b{display:inline;font-size:20px}}
 .hostreset{border-color:var(--red);color:var(--red)}.hostreset.armed{background:var(--red);color:#fff}
+.nmerr{display:block;margin-top:8px;color:var(--errtx);font-size:14px;min-height:20px}
 </style>
 </head>
 <body>
@@ -669,12 +670,21 @@ R.start=()=>{
  <p class="lead">Our money transfer flow, for you to break and fix.</p>
  <div class="card"><div class="grid g2"><div><label class="fl" for="nm">Your name</label><input type="text" id="nm" value="${esc(S.name)}" placeholder="e.g. Rufina"></div>
  <div><span class="fl">Your team</span><div class="chips" id="teams"></div></div></div>
- <div class="go" style="margin-top:14px"><button class="btn r" id="go" style="padding:15px 26px;font-size:17px">Start ▶</button></div></div>
+ <div class="go" style="margin-top:14px"><button class="btn r" id="go" style="padding:15px 26px;font-size:17px">Start ▶</button><span class="nmerr" id="nmerr" role="alert"></span></div></div>
  <div class="rooms6">${[["#play","▶","Experience","Use the real app"],["#inspire","✨","Inspire","Others do it better"],["#critique","🚩","Critique","What's wrong"],["#top","🏆","Top critiques","What most said"],["#make","✏️","Make","Design a fix"],["#share","📣","Pitch","Share your idea"]].map((r,i)=>`<a class="r6" href="${r[0]}"><em>${r[1]}</em><b>${i+1}. ${r[2]}</b><span>${r[3]}</span></a>`).join("")}</div>
  <div class="rules">${["💡 Wild ideas welcome","🛠️ Any tool counts","👷 Design for our users","🤝 Critique ideas, not people"].map(x=>`<span>${x}</span>`).join("")}</div>
  <p class="small muted" style="margin-top:10px">Saved on this device as you go.</p>`;
- $("#nm").oninput=e=>{S.name=e.target.value;save();};
- $("#go").onclick=()=>{if(!S.name.trim()){toast("Add your name first");$("#nm").focus();return;}if(!S.team){toast("Pick your team first");return;}location.hash="#play";};
+ $("#nm").oninput=()=>{const e=$("#nmerr");if(e)e.textContent="";};
+ $("#go").onclick=async()=>{const nm=$("#nm").value.trim().replace(/\s+/g," "),err=$("#nmerr");
+  if(!nm){err.textContent="Add your name first";$("#nm").focus();return;}if(!S.team){err.textContent="Pick your team first";return;}
+  const go=$("#go");go.disabled=true;go.textContent="Checking…";if(SA&&CONFIG.SHEET_CSV)await loadLive();go.disabled=false;go.textContent="Start ▶";
+  const k=nm.toLowerCase();if(!S.myNames)S.myNames=[];
+  if(!S.lastName&&(S.name||"").trim().toLowerCase()===k)S.myNames.push(k);
+  if(nameTaken(k)&&!S.myNames.includes(k)){err.innerHTML=`<b>${esc(nm)}</b> is already taken. Add your surname or initial, e.g. ${esc(nm)} K.`;$("#nm").focus();return;}
+  if(S.lastName&&S.lastName!==k)newPerson();
+  S.name=nm;S.lastName=k;if(!S.myNames.includes(k))S.myNames.push(k);if(!S.uid)S.uid=Math.random().toString(36).slice(2,8);save();
+  if(SA)bgSend({name:nm,team:S.team,idea:"JOIN:"+S.uid}).catch(()=>{});
+  try{paintNav();}catch(e){}location.hash="#play";};
  const t=$("#teams");["VAS","CS","Tech","Data","Product","Design","Leadership","Other"].forEach(x=>{const b=document.createElement("button");b.className="chip";b.textContent=x;b.setAttribute("aria-pressed",S.team===x);b.onclick=()=>{S.team=x;save();[...t.children].forEach(c=>c.setAttribute("aria-pressed",c===b));};t.appendChild(b);});
 };
 
@@ -1237,13 +1247,16 @@ R.make=()=>{
 };
 
 /* team critiques pasted from chat / sheet: dedupe, group by screen, count */
-let LIVE_CRIT="",LIVE_AT="",LIVE_ROWS=[];
+let LIVE_CRIT="",LIVE_AT="",LIVE_ROWS=[],LIVE_TOTAL=0;
 function parseCSV(t){const rows=[];let r=[],f="",q=false;for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c==='"'){if(t[i+1]==='"'){f+='"';i++;}else q=false;}else f+=c;}else if(c==='"')q=true;else if(c===","){r.push(f);f="";}else if(c==="\n"){r.push(f);rows.push(r);r=[];f="";}else if(c!=="\r")f+=c;}if(f||r.length){r.push(f);rows.push(r);}return rows;}
 async function loadLive(){if(!SA||!CONFIG.SHEET_CSV)return false;try{const r=await fetch(CONFIG.SHEET_CSV+(CONFIG.SHEET_CSV.includes("?")?"&":"?")+"t="+Date.now());const rows=parseCSV(await r.text());const h=rows[0]||[];const ci=h.findIndex(x=>/critique/i.test(x));if(ci<0)return false;
  const fi=re=>h.findIndex(x=>re.test(x));const ni=fi(/name/i),ti=fi(/team/i),ii=fi(/idea/i);
  let all=rows.slice(1).filter(x=>x.some(Boolean)).map(x=>({name:(x[ni]||"").trim(),team:(x[ti]||"").trim(),crit:x[ci]||"",idea:ii>=0?(x[ii]||"").trim():""}));
- let rid="";all.forEach((r,i)=>{const m=/^RESET:(\w+)/.exec(r.idea);if(m){rid=m[1];all.__cut=i+1;}});if(all.__cut)all=all.slice(all.__cut);
- if(rid&&S.resetSeen!==rid){const had=S.resetSeen!==undefined||Object.keys(S.flags||{}).length;if(had&&S.resetSeen!==rid)clearCrit();S.resetSeen=rid;save();}else if(!rid&&S.resetSeen===undefined){S.resetSeen="";save();}
+ LIVE_TOTAL=all.length;let rid="",cut=0;all.forEach((r,i)=>{const m=/^RESET:(\w+)/.exec(r.idea);if(m){rid=m[1];cut=i+1;}});
+ const pend=S.resetPending;
+ if(pend&&rid!==pend.id){all=all.slice(Math.min(pend.n,all.length));} // our reset isn't in Google's copy yet: hide everything that was there when we reset
+ else{if(pend){delete S.resetPending;save();}all=all.slice(cut);
+  if(rid&&S.resetSeen!==rid){const had=S.resetSeen!==undefined||Object.keys(S.flags||{}).length;if(had)clearCrit();S.resetSeen=rid;save();}else if(!rid&&S.resetSeen===undefined){S.resetSeen="";save();}}
  LIVE_ROWS=all;
  LIVE_CRIT=LIVE_ROWS.map(x=>x.crit).filter(Boolean).join("\n");LIVE_AT=new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});return true;}catch(e){return false;}}
 function teamCrit(){return mergeCrit([S.teamRaw||"",LIVE_CRIT,...(CONFIG.TEAM_CRITIQUES||[])].join("\n"));}
@@ -1299,7 +1312,11 @@ function topGroups(){
 function topThemes(groups){const t=new Map();groups.filter(g=>!g.hidden).forEach(g=>g.m.forEach(m=>{const k=normT(m.note);if(k.split(" ").length>4)return;if(!t.has(k))t.set(k,{label:m.note,ppl:new Set(),scr:new Set()});const x=t.get(k);x.ppl.add(m.name.toLowerCase());x.scr.add(g.scr);}));
  return [...t.values()].filter(x=>x.ppl.size>=2&&x.scr.size>=2).sort((a,b)=>b.ppl.size-a.ppl.size).slice(0,6);}
 function pickGroup(g){S.pick={l:1,t:(g.scr?g.scr+": ":"")+g.head};if(g.sid){S.fix=g.sid;S.fixJ=FIXJ.wallet.s.some(x=>x[0]===g.sid)&&!FIXJ.india.s.some(x=>x[0]===g.sid)?"wallet":"india";}S.card=Object.assign(S.card||{},{problem:g.head,fix:""});save();}
-function clearCrit(){S.flags=Object.fromEntries(Object.entries(S.flags||{}).filter(([k])=>k.startsWith("play:")));S.sent={};S.votes=[];S.hidden=[];S.teamRaw="";if(S.pick&&S.pick.l===1)S.pick=null;save();}
+function clearCrit(){S.myNames=[];S.flags=Object.fromEntries(Object.entries(S.flags||{}).filter(([k])=>k.startsWith("play:")));S.sent={};S.votes=[];S.hidden=[];S.teamRaw="";if(S.pick&&S.pick.l===1)S.pick=null;save();}
+function nameTaken(k){return LIVE_ROWS.some(r=>(r.name||"").trim().toLowerCase()===k&&(r.crit||/^(JOIN|VOTE):/.test(r.idea)));}
+function newPerson(){const keep={resetSeen:S.resetSeen,resetPending:S.resetPending,host:S.host,insTab:S.insTab,dtog:S.dtog};
+ ["flags","sent","votes","hidden","card","pick","fix","idea","ideas","pulse","cons","upl","mark","build","seen","teamRaw","ltab","critErr","uid"].forEach(x=>delete S[x]);
+ S.flags={};S.cons=[];Object.assign(S,keep);S.uid=Math.random().toString(36).slice(2,8);}
 let topIv=null,resetArm=0;
 R.top=()=>{
  $("#v-top").innerHTML=`<h1>Top critiques</h1><p class="lead">Same point from different people, merged. Tap 👍 on the ones you agree with.</p>
@@ -1328,7 +1345,7 @@ R.top=()=>{
  const pull=()=>loadLive().then(()=>{if(location.hash==="#top")paint();});
  const rf=$("#trf");if(rf)rf.onclick=()=>{pull();toast("Refreshing…");};
  const rb=$("#treset");if(rb)rb.onclick=()=>{if(Date.now()-resetArm>4000){resetArm=Date.now();rb.textContent="Tap again to clear everyone's critiques and votes";rb.classList.add("armed");setTimeout(()=>{if(rb.isConnected){rb.textContent="⟲ Reset all";rb.classList.remove("armed");}},4000);return;}
-  resetArm=0;const id=Date.now().toString(36);clearCrit();S.resetSeen=id;LIVE_ROWS=[];save();
+  resetArm=0;const id=Date.now().toString(36);clearCrit();S.resetSeen=id;S.resetPending={id,n:LIVE_TOTAL};LIVE_ROWS=[];save();
   if(SA)bgSend({name:"HOST",team:"Host",idea:"RESET:"+id}).then(()=>toast("Reset sent: everyone starts fresh")).catch(()=>toast("Reset saved here, but not sent: check the internet"));else toast("Reset on this device");paint();};
  paint();clearInterval(topIv);if(SA&&CONFIG.SHEET_CSV){pull();topIv=setInterval(()=>{if(location.hash==="#top")pull();else clearInterval(topIv);},20000);}
 };
