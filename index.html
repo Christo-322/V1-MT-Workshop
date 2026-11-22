@@ -538,6 +538,16 @@ nav a.on{border-color:var(--navy)}
 
 .nf-in{flex-direction:row-reverse;justify-content:flex-end}
 .nextfix .btn{min-height:0;padding:8px 16px;font-size:14px}
+.teambar[hidden],.cons[hidden]{display:none!important}
+
+.mfil{margin:6px 0 14px}
+.mood{columns:6 140px;column-gap:12px}
+.mi{break-inside:avoid;margin:0 0 16px;position:relative}
+.mi-im{display:block;width:100%;padding:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;cursor:zoom-in}
+.mi-im img{display:block;width:100%;height:auto}
+.mi-like{position:absolute;top:8px;right:8px;display:flex;align-items:center;gap:4px;border:0;background:rgba(255,255,255,.95);border-radius:999px;padding:5px 9px;font-size:15px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.mi-like b{font-size:12px;color:var(--navy)}.mi-like.on{background:#fff}
+.mi figcaption{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.35}.mi figcaption b{color:var(--navy);font-weight:500}
 </style>
 </head>
 <body>
@@ -1165,17 +1175,16 @@ R.make=()=>{
  <p class="lead">Pick one problem. Fix it your way.</p>
  <h2>1. Pick what to fix</h2>
  <div class="lists" id="lists"></div>
- <div class="teambar">${CONFIG.SHEET?`<a class="btn s sm" href="${esc(CONFIG.SHEET)}" target="_blank" rel="noopener">👥 See everyone's critiques</a>`:`<span class="btn s sm" style="opacity:.6;cursor:default">👥 Team sheet link coming</span>`}
+ <div class="teambar" hidden>${CONFIG.SHEET?`<a class="btn s sm" href="${esc(CONFIG.SHEET)}" target="_blank" rel="noopener">👥 See everyone's critiques</a>`:`<span class="btn s sm" style="opacity:.6;cursor:default">👥 Team sheet link coming</span>`}
   <details id="tpd"><summary class="btn s sm">📋 Paste the team's critiques</summary><div class="card" style="margin-top:8px"><p class="small" style="margin-top:0">Copy the critiques from ${esc(CONFIG.chat)} (or the team sheet) and paste them here. One per line. They'll appear in list 1, grouped, with how many people said it.</p>
   <textarea id="tpin" rows="5" placeholder="Enter IFSC code: nobody knows their IFSC&#10;Bank search: nothing found: blank screen, no help"></textarea><div style="display:flex;gap:8px;margin-top:8px"><button class="btn p sm" id="tpgo">Add to list 1</button><button class="btn s sm" id="tpclr">Clear team list</button></div></div></details></div>
- <div class="own"><label class="fl" for="ownin" style="margin-top:0">Or your own idea</label><div style="display:flex;gap:8px"><input type="text" id="ownin" placeholder="e.g. Let the family add their own bank details from a WhatsApp link" value="${esc(S.pick&&S.pick.l===0?S.pick.t:"")}"><button class="btn s" id="ownb">Pick</button></div></div>
+ <div class="own"><label class="fl" for="ownin" style="margin-top:12px">Or your own</label><div style="display:flex;gap:8px"><input type="text" id="ownin" placeholder="e.g. Let the family add their own bank details from a WhatsApp link" value="${esc(S.pick&&S.pick.l===0?S.pick.t:"")}"><button class="btn s" id="ownb">Pick</button></div></div>
  <div id="fctx"></div>
  <details class="scrpick" id="scrd"><summary><b>Which screen does it change?</b> <span class="small muted">Optional</span></summary>
  <div class="jpick" id="fj" style="margin-top:10px">${Object.entries(FIXJ).map(([k,j])=>`<button class="chip" data-j="${k}">${j.n}</button>`).join("")}</div>
  <div class="fgrid" id="fgrid"></div></details>
- <h2>2. Who is it for?</h2>
- <div class="cons" id="cons">${CONSTRAINTS.map((c,i)=>`<button class="con" data-i="${i}" aria-pressed="${S.cons.includes(i)}" title="${esc(c[2])}"><em>${c[0]}</em><b>${esc(c[1])}</b></button>`).join("")}</div>
- <h2>3. Design it</h2>
+ <div class="cons" id="cons" hidden>${CONSTRAINTS.map((c,i)=>`<button class="con" data-i="${i}" aria-pressed="${S.cons.includes(i)}" title="${esc(c[2])}"><em>${c[0]}</em><b>${esc(c[1])}</b></button>`).join("")}</div>
+ <h2>2. Design it</h2>
  <div class="tabs" id="mtabs"><button data-t="paper">📷 Paper or other tool</button><button data-t="ai">🤖 Ask any AI</button><button data-t="build">🧱 Rebuild it</button></div>
  <div id="tab-mark" class="tabp" style="display:none" hidden><div class="padwrap"><div class="phone" style="width:300px"><div class="scr"><canvas id="mcv"></canvas></div></div>
   <div><div class="tools" id="mtools"><button class="tool" data-c="#e2483d" aria-pressed="true"><span class="sw" style="background:#e2483d"></span> Red pen</button><button class="tool" data-c="#0f8a5f"><span class="sw" style="background:#0f8a5f"></span> Green</button><button class="tool" data-c="#0e2a47"><span class="sw" style="background:#0e2a47"></span> Navy</button><button class="tool" data-c="#ffd34d" data-w="16"><span class="sw" style="background:#ffd34d"></span> Highlight</button><button class="tool" data-c="erase">🧽 Eraser</button><button class="tool" data-c="text">🗒 Note</button></div>
@@ -1329,11 +1338,15 @@ function topGroups(){
 function topThemes(groups){const t=new Map();groups.filter(g=>!g.hidden).forEach(g=>g.m.forEach(m=>{const k=normT(m.note);if(k.split(" ").length>4)return;if(!t.has(k))t.set(k,{label:m.note,ppl:new Set(),scr:new Set()});const x=t.get(k);x.ppl.add(m.name.toLowerCase());x.scr.add(g.scr);}));
  return [...t.values()].filter(x=>x.ppl.size>=2&&x.scr.size>=2).sort((a,b)=>b.ppl.size-a.ppl.size).slice(0,6);}
 function pickGroup(g){S.pick={l:1,t:(g.scr?g.scr+": ":"")+g.head};if(g.sid){S.fix=g.sid;S.fixJ=FIXJ.wallet.s.some(x=>x[0]===g.sid)&&!FIXJ.india.s.some(x=>x[0]===g.sid)?"wallet":"india";}S.card=Object.assign(S.card||{},{problem:g.head,fix:""});save();}
-function clearCrit(){S.myNames=[];S.flags=Object.fromEntries(Object.entries(S.flags||{}).filter(([k])=>k.startsWith("play:")));S.sent={};S.votes=[];S.hidden=[];S.teamRaw="";if(S.pick&&S.pick.l===1)S.pick=null;save();}
+function clearCrit(){S.myNames=[];S.likes=[];S.flags=Object.fromEntries(Object.entries(S.flags||{}).filter(([k])=>k.startsWith("play:")));S.sent={};S.votes=[];S.hidden=[];S.teamRaw="";if(S.pick&&S.pick.l===1)S.pick=null;save();}
 function nameTaken(k){return LIVE_ROWS.some(r=>(r.name||"").trim().toLowerCase()===k&&(r.crit||/^(JOIN|VOTE):/.test(r.idea)));}
 function newPerson(){const keep={resetSeen:S.resetSeen,resetPending:S.resetPending,host:S.host,insTab:S.insTab,dtog:S.dtog};
- ["flags","sent","votes","hidden","card","pick","fix","idea","ideas","pulse","cons","upl","mark","build","seen","teamRaw","ltab","critErr","uid"].forEach(x=>delete S[x]);
+ ["flags","sent","votes","hidden","likes","card","pick","fix","idea","ideas","pulse","cons","upl","mark","build","seen","teamRaw","ltab","critErr","uid"].forEach(x=>delete S[x]);
  S.flags={};S.cons=[];Object.assign(S,keep);S.uid=Math.random().toString(36).slice(2,8);}
+function likeCounts(){const per=new Map();LIVE_ROWS.forEach(r=>{const m=/^(UN)?LIKE:([\w-]+)/.exec(r.idea);if(!m)return;const n=(r.name||"?").toLowerCase();if(!per.has(m[2]))per.set(m[2],new Set());m[1]?per.get(m[2]).delete(n):per.get(m[2]).add(n);});
+ const me=((S.name||"").trim()||"you").toLowerCase();Object.keys(Object.fromEntries(per)).forEach(()=>{});
+ (S.likes||[]).forEach(k=>{if(!per.has(k))per.set(k,new Set());per.get(k).add(me);});per.forEach((set,k)=>{if(!(S.likes||[]).includes(k))set.delete(me);});
+ const o={};per.forEach((v,k)=>o[k]=v.size);return o;}
 let topIv=null,resetArm=0;
 R.top=()=>{
  $("#v-top").innerHTML=`<h1>Top critiques</h1><p class="lead">Same point from different people, merged. Tap 👍 on the ones you agree with.</p>
@@ -1596,7 +1609,9 @@ R.inspire=()=>{
  <p class="lead">Swipe through real screens. Steal what works.</p>
  ${CONFIG.FUNNEL?`<div class="dslot" style="margin-top:14px"><button class="dimg" data-zoom="${esc(CONFIG.FUNNEL)}" data-cap="Money transfer funnel"><img src="${esc(CONFIG.FUNNEL)}" alt="Funnel"></button></div>`:""}
  <div class="itabs" role="tablist">${TABS.map(([k,n])=>`<button role="tab" data-t="${k}">${n}</button>`).join("")}</div>
- ${TABS.map(([k])=>`<div class="ipane" id="${k}"></div>`).join("")}`;
+ ${TABS.map(([k])=>`<div class="ipane" id="${k}"></div>`).join("")}
+ <h2 style="margin-top:34px">Moodboard</h2><p class="muted" style="margin-top:0">Every screen in one place. Tap ❤️ on the ones you love.</p>
+ <div class="chips mfil" id="mfil"></div><div class="mood" id="mood"></div>`;
  wireZoom($("#v-inspire"));
  viewer($("#asp"),ASPORA.map(([n,c,p],k)=>({src:COMP(IMGA(`img/comp/aspora-${n}.jpg`)),app:"Aspora",cap:c,good:CRIT_ASP[k][0].slice(0,1),bad:CRIT_ASP[k][1].slice(0,1)})),{strip:true});
  viewer($("#ttp"),TAPTAP.map(([c,p],k)=>({src:COMP(`img/comp/taptap-${String(k+1).padStart(2,"0")}.jpg`),app:"Taptap Send",cap:c,good:CRIT_TTP[k][0].slice(0,1),bad:CRIT_TTP[k][1].slice(0,1)})),{strip:true});
@@ -1604,6 +1619,25 @@ R.inspire=()=>{
  viewer($("#mob"),MOBBIN.map(([a,c,st,b,u,id],k)=>({src:COMP(`img/mob/m${String(k+1).padStart(2,"0")}.jpg`),app:a,cap:c,best:b,us:u,link:`https://mobbin.com/screens/${id}`})),{strip:true});
  const show=t=>{S.insTab=t;save();document.querySelectorAll(".itabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.t===t));TABS.forEach(([k])=>$("#"+k).hidden=k!==t);};
  document.querySelectorAll(".itabs button").forEach(b=>b.onclick=()=>show(b.dataset.t));show(S.insTab);
+ const MI=[...ASPORA.map(([n,c],k)=>({k:"asp-"+n,app:"Aspora",cap:c,src:COMP(IMGA(`img/comp/aspora-${n}.jpg`))})),
+  ...TAPTAP.map(([c],k)=>({k:"ttp-"+(k+1),app:"Taptap Send",cap:c,src:COMP(`img/comp/taptap-${String(k+1).padStart(2,"0")}.jpg`)})),
+  ...BOTIM.map(([c],k)=>({k:"bot-"+(k+1),app:"Botim",cap:c,src:COMP(`img/comp/botim-${String(k+1).padStart(2,"0")}.jpg`)})),
+  ...MOBBIN.map(([a,c],k)=>({k:"mob-"+(k+1),app:a,cap:c,best:1,src:COMP(`img/mob/m${String(k+1).padStart(2,"0")}.jpg`)}))];
+ const F=[["all","All"],["Aspora","Aspora"],["Taptap Send","Taptap Send"],["Botim","Botim"],["best","⭐ Best in world"],["top","❤️ Most liked"]];
+ if(!S.moodF)S.moodF="all";
+ $("#mfil").innerHTML=F.map(([k,n])=>`<button class="chip" data-f="${k}">${n}</button>`).join("");
+ const paintMood=()=>{const L=likeCounts();document.querySelectorAll("#mfil .chip").forEach(b=>b.setAttribute("aria-pressed",b.dataset.f===S.moodF));
+  let arr=MI.filter(m=>S.moodF==="all"||S.moodF==="top"||(S.moodF==="best"?m.best:m.app===S.moodF&&!m.best));
+  if(S.moodF==="top")arr=arr.filter(m=>(L[m.k]||0)>0).sort((a,b)=>(L[b.k]||0)-(L[a.k]||0));
+  const mine=new Set(S.likes||[]);
+  $("#mood").innerHTML=arr.length?arr.map(m=>`<figure class="mi"><button class="mi-im" data-z="${m.k}"><img src="${m.src}" alt="" loading="lazy"></button>
+   <button class="mi-like${mine.has(m.k)?" on":""}" data-l="${m.k}" aria-label="Like">${mine.has(m.k)?"❤️":"🤍"}<b>${L[m.k]||""}</b></button>
+   <figcaption><b>${esc(m.app)}</b> · ${esc(m.cap)}</figcaption></figure>`).join(""):`<div class="notice">No likes yet. Tap 🤍 on a screen.</div>`;
+  $("#mood").querySelectorAll("[data-z]").forEach(b=>b.onclick=()=>{const m=MI.find(x=>x.k===b.dataset.z);zoom(m.src,m.app+": "+m.cap);});
+  $("#mood").querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{const k=b.dataset.l;if(!S.likes)S.likes=[];const on=S.likes.includes(k);
+   S.likes=on?S.likes.filter(x=>x!==k):[...S.likes,k];save();if(SA)bgSend(Object.assign(who(),{idea:(on?"UNLIKE:":"LIKE:")+k})).catch(()=>{});paintMood();});};
+ document.querySelectorAll("#mfil .chip").forEach(b=>b.onclick=()=>{S.moodF=b.dataset.f;save();paintMood();});
+ paintMood();if(SA&&CONFIG.SHEET_CSV)loadLive().then(()=>{if($("#mood"))paintMood();});
 };
 
 /* ================= SHARE ================= */
