@@ -655,6 +655,12 @@ nav a.locked{opacity:.55}nav a.locked .nn{display:none}
 
 .lv-amtcta{position:absolute;left:0;top:450px;width:360px;height:64px;border:0;background-size:360px 64px;display:none;cursor:pointer;z-index:6}
 .lv-amtcta.on{display:block}
+
+.lv-bankblk{position:absolute;left:14px;top:166px;width:330px;height:56px;background:#fff;display:flex;align-items:center;gap:13px;padding-left:2px}
+.lv-bankblk .bk-ic{width:48px;height:48px}
+.lv-bankblk div{display:flex;flex-direction:column;gap:3px}
+.lv-bankblk b{font:500 15.5px Ubuntu,sans-serif;color:#0a1823;letter-spacing:.2px}
+.lv-bankblk span{font:300 11.5px Ubuntu,sans-serif;color:#303030}
 </style>
 </head>
 <body>
@@ -971,9 +977,9 @@ const LIVE={
   btns:[[16,430,328,44]],
   submit(){if(!LV.first.trim()||!LV.last.trim())return sheet("name");LV.saved=null;liveNext();}},
  lv09:{base:"lv13",auto:"ifsc",fields:[{k:"ifsc",r:[17,194,326,43],kb:"qwerty",ph:"",max:11}],btns:[[16,430,328,44]],
-  submit(){const v=LV.ifsc.trim().toUpperCase();if(v.length<11)return sheet("ifsc11");if(!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(v)||!IFSC_BANK[v.slice(0,4)])return sheet("ifscBad");LV.bank=IFSC_BANK[v.slice(0,4)];LV.branch=IFSC_OK[v]||("BRANCH "+v.slice(5));liveNext();}},
+  submit(){const v=LV.ifsc.trim().toUpperCase();if(v.length<11)return sheet("ifsc11");if(!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(v)||!IFSC_BANK[v.slice(0,4)])return sheet("ifscBad");LV.bank=IFSC_BANK[v.slice(0,4)];LV.branch=IFSC_OK[v]||("IFSC "+v);liveNext();}},
  lv08:{base:"lv08",auto:"acct",fields:[{k:"acct",r:[17,258,326,43],kb:"num",ph:"",max:18,digits:true}],btns:[[16,456,328,44]],
-  extra:()=>LV.branch!=="MELOOR"?[T(LV.branch,76,197,240,17,"300 11px Ubuntu,sans-serif","#303030","left")]:[],
+  extra:()=>[{html:bankBlock()}],
   submit(){const v=LV.acct.replace(/\D/g,"");if(v.length<11)return sheet("acct11");LV.saved=null;liveNext();}},
  lv05:{base:"lv05",amount:"INR",auto:"aed",btns:[[16,723,328,44]],submit(){amountSubmit();}},
  pw3:{base:"pw3",amount:"PKR",auto:"aed",btns:[[16,723,328,44]],submit(){amountSubmit();}},
@@ -1013,6 +1019,8 @@ const IN_BANKS=[["Abhyudaya Cooperative Bank", "ABHY"], ["Airtel Payments Bank",
 const IFSC_BANK=Object.fromEntries(IN_BANKS.map(([n,c])=>[c,n]));
 const POP_BANKS=[["State Bank Of India", 45], ["Punjab National Bank", 115], ["Canara Bank", 185], ["Union Bank Of India", 255], ["Federal Bank", 326], ["Bank Of Baroda", 397], ["Indian Bank", 467], ["HDFC Bank", 538], ["Bank Of India", 609]];
 const bankRow=(n,logoY)=>`<div class="bk-row tap" data-bank="${esc(n)}"><span class="bk-ic"${logoY!=null?` style="background:url('${COMP("img/scroll/banks.jpg")}') -16px -${logoY+11}px/360px auto"`:""}>${logoY!=null?"":`<img src="${COMP("img/bankicon.png")}" alt="">`}</span><span class="bk-n">${esc(n)}</span><svg class="bk-ch" viewBox="0 0 24 24" width="22" height="22"><path d="M9 5l7 7-7 7" fill="none" stroke="#0b3a53" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
+function bankIcon(n,size){const pp=POP_BANKS.find(x=>x[0].toLowerCase()===String(n).toLowerCase());return pp?`<span class="bk-ic" style="background:url('${COMP("img/scroll/banks.jpg")}') -16px -${pp[1]+11}px/360px auto"></span>`:`<span class="bk-ic"><img src="${COMP("img/bankicon.png")}" alt=""></span>`;}
+function bankBlock(){const n=LV.bank||"Federal Bank",br=LV.branch||"MELOOR";return `<div class="lv-bankblk">${bankIcon(n)}<div><b>${esc(n.toUpperCase())}</b><span>${esc(br)}</span></div></div>`;}
 function pickBank(n){LV.bank=n;goP("sb4","Picked "+n);}
 let LF=null; /* focused field key */
 function liveNext(){const n=node();goP(n.next);}
@@ -1052,7 +1060,7 @@ function renderLive0(){const live=$("#plive");if(!live)return;live.innerHTML="";
   h+=`<div class="lv-mask" style="left:${mx}px;top:${y+3}px;width:${mw}px;height:${hh-6}px"></div>`;
   h+=`<input data-k="${f.k}" ${f.digits?'inputmode="none" pattern="[0-9]*"':'inputmode="none"'} autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="${f.max||60}" placeholder="${esc(f.ph||"")}" value="${esc(LV[f.k]||"")}" style="left:${mx+(pre?14:srch?6:17)}px;top:${y+3}px;width:${mw-(pre?14:srch?6:17)-4}px;height:${hh-6}px">`;
   if(f.search)h+=`<button class="lv-clear" data-k="${f.k}" tabindex="-1" style="left:${x+w-44}px;top:${y+4}px;width:40px;height:${hh-8}px;background-image:url('${img("sb2")}');background-position:-${x+w-44}px -${y+4}px"></button>`;});
- extra.forEach(e=>{h+=`<div class="lv-text" style="left:${e.x}px;top:${e.y}px;width:${e.w}px;height:${e.h}px;font:${e.font};color:${e.color};text-align:${e.align};line-height:${e.h}px;${e.mask?"background:#fff":""}">${esc(e.txt)}</div>`;});
+ extra.forEach(e=>{if(e.html){h+=e.html;return;}h+=`<div class="lv-text" style="left:${e.x}px;top:${e.y}px;width:${e.w}px;height:${e.h}px;font:${e.font};color:${e.color};text-align:${e.align};line-height:${e.h}px;${e.mask?"background:#fff":""}">${esc(e.txt)}</div>`;});
  if(d.amount){h+=`<div class="lv-mask" style="left:28px;top:190px;width:220px;height:36px"></div><input data-k="aed" inputmode="none" autocomplete="off" maxlength="8" value="${esc(LV.aed)}" placeholder="0.00" style="left:34px;top:190px;width:210px;height:36px;font:500 20px Ubuntu,sans-serif;color:#000">
   <div class="lv-mask" style="left:28px;top:284px;width:220px;height:36px"></div><input data-k="inr" id="lvloc" inputmode="none" autocomplete="off" maxlength="10" placeholder="0.00" style="left:34px;top:284px;width:210px;height:36px;font:500 20px Ubuntu,sans-serif;color:#000">
  <button class="lv-amtcta" tabindex="-1" style="background-image:url('${COMP("img/amtcta-"+PR.cur+".jpg")}')" aria-label="Send Now"></button>`;}
