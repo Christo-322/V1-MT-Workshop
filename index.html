@@ -602,6 +602,27 @@ body.hasnext .counter{display:none!important}
 @media(max-width:700px){.nextfix .nf-go{padding:12px 16px 12px 18px;font-size:15px}}
 
 body.noname nav a:not([data-v="start"]){opacity:.45}
+
+.isl{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.isr{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;padding:0 6px 0 10px;background:#fff}
+.isr:focus-within{border-color:var(--navy2);box-shadow:0 0 0 3px rgba(43,118,156,.15)}
+.isn{font-size:13px;color:var(--muted);width:18px;flex:none}
+.isr input{flex:1;border:0!important;outline:0;box-shadow:none!important;padding:10px 0!important;font:inherit;font-size:15px;background:transparent;min-width:0}
+.isx{border:0;background:none;color:var(--muted);font-size:14px;cursor:pointer;padding:6px}
+.isx:hover{color:var(--errtx)}
+.isadd{margin-top:6px;border:1px dashed var(--line);background:#fff;border-radius:8px;padding:8px 12px;font:inherit;font-size:14px;color:var(--navy2);cursor:pointer;width:100%;text-align:left}
+.ct-note{display:flex;flex-direction:column;gap:2px}.ct-note span{display:block}.ct-note span::before{content:"• "}
+
+.pmap-h{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:28px}
+.pmap-h h2{margin:0}
+.pmap{display:flex;gap:10px;overflow-x:auto;padding:10px 2px 12px;scrollbar-width:thin}
+.pm{flex:0 0 92px;position:relative;border:1px solid var(--line);border-radius:10px;background:#fff;padding:6px;cursor:pointer;display:flex;flex-direction:column;gap:6px;text-align:left}
+.pm img{width:100%;aspect-ratio:360/600;object-fit:cover;object-position:top;border-radius:6px}
+.pm span{font-size:11px;line-height:1.25;color:var(--navy);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pm b{position:absolute;top:-6px;right:-6px;min-width:26px;height:26px;border-radius:999px;color:#fff;font-size:13px;display:grid;place-items:center;padding:0 6px;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.pm.zero{opacity:.55}.pm.on{border-color:var(--navy);box-shadow:0 0 0 2px var(--navy)}
+.pm-sel{margin-top:8px;padding:14px;border:1px solid var(--line);border-radius:12px;background:#f7fafc}
+.pm-sel h3{display:flex;align-items:center;gap:10px;margin:0 0 10px;font-size:17px;color:var(--navy)}.pm-sel h3 .btn{margin-left:auto}
 </style>
 </head>
 <body>
@@ -723,21 +744,35 @@ function unsent(){if(!S.sent)S.sent={};return Object.entries(S.flags).filter(([k
 const SA=!!window.STANDALONE;
 function bgSend(vals){const e=CONFIG.entries,b=new URLSearchParams();Object.keys(vals).forEach(k=>{if(e[k]&&vals[k])b.append("entry."+e[k],vals[k]);});
  return fetch(CONFIG.formBase.split("?")[0].replace(/\/viewform$/,"/formResponse"),{method:"POST",mode:"no-cors",body:b});}
+const issuesOf=v=>(v||"").split(/\n|\s+·\s+/).map(x=>x.trim()).filter(Boolean);
+async function sendIssues(key,label,v){const prev=new Set(issuesOf((S.sent||{})[key]));const fresh=issuesOf(v).filter(x=>!prev.has(x));
+ for(const t of fresh){await bgSend(Object.assign(who(),{critique:`${CAP[key]||label||key}: ${t}`}));}}
 function openFlag(id,label,src){
  const key=id;const cur=S.flags[key]||"";const title=label||CAP[id]||"Screen";
  $("#mdc").innerHTML=`<button class="mdx" aria-label="Close">✕</button>${src!==null?`<img src="${src||img(id)}" alt="">`:""}
  <div style="flex:1;min-width:0"><span class="kick" style="margin-top:0">Critique</span><h2 style="margin-top:8px">${esc(title)}</h2>
- <p class="small muted">What's wrong, confusing or scary here for someone like Ramesh or Joy? Be specific. Critique the design, not the person who made it.</p>
- <textarea id="fnote" rows="5" placeholder="e.g. 'Choose one option' makes people stop. Most don't know their IFSC.">${esc(cur)}</textarea>
+ <p class="small muted">One issue per line. Press Enter for the next one.</p>
+ <div class="isl" id="isl"></div><button class="isadd" id="isadd" type="button">+ Add another issue</button>
+ <textarea id="fnote" hidden>${esc(cur)}</textarea>
  <div class="chips" style="margin-top:8px" id="fq"></div>
  <div style="display:flex;gap:8px;margin-top:12px;align-items:center;flex-wrap:wrap">${live()&&!SA?`<a class="btn p" id="fsave" href="#" target="_blank" rel="noopener">🚩 Save &amp; send</a>`:`<button class="btn p" id="fsave">${live()?"🚩 Save &amp; send":"🚩 Save"}</button>`}${cur?'<button class="btn s" id="fdel">Remove</button>':''}${live()?`<span class="small muted">${SA?"Goes straight to the team sheet.":"Goes straight to the team sheet. A Google tab opens: just come back here."}</span>`:""}</div></div>`;
- ["Confusing","Too much reading","Scary","Too many steps","Missing help","Unclear error","Feels unsafe"].forEach(w=>{const b=document.createElement("button");b.className="chip";b.textContent=w;b.onclick=()=>{const t=$("#fnote");t.value=(t.value?t.value.trim()+" · ":"")+w;};$("#fq").appendChild(b);});
+ const isl=$("#isl");
+ const sync=()=>{$("#fnote").value=[...isl.querySelectorAll("input")].map(i=>i.value.trim()).filter(Boolean).join("\n");$("#fnote").dispatchEvent(new Event("input"));};
+ const addRow=(val,focus)=>{const r=document.createElement("div");r.className="isr";r.innerHTML=`<span class="isn"></span><input type="text" maxlength="200" placeholder="e.g. Most people don't know their IFSC"><button type="button" class="isx" aria-label="Remove">✕</button>`;
+  const inp=r.querySelector("input");inp.value=val||"";isl.appendChild(r);renum();
+  inp.addEventListener("input",sync);inp.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();if(inp.value.trim()){const nx=r.nextElementSibling;if(nx)nx.querySelector("input").focus();else addRow("",true);}}
+   else if(e.key==="Backspace"&&!inp.value&&isl.children.length>1){e.preventDefault();const pv=r.previousElementSibling||r.nextElementSibling;r.remove();renum();sync();pv&&pv.querySelector("input").focus();}});
+  r.querySelector(".isx").onclick=()=>{if(isl.children.length>1)r.remove();else inp.value="";renum();sync();};if(focus)inp.focus();return inp;};
+ const renum=()=>[...isl.children].forEach((r,i)=>r.querySelector(".isn").textContent=i+1+".");
+ const items=issuesOf(cur);(items.length?items:[""]).forEach(v=>addRow(v));setTimeout(()=>{const ins=isl.querySelectorAll("input");ins[ins.length-1].focus();},60);
+ $("#isadd").onclick=()=>addRow("",true);
+ ["Confusing","Too much reading","Scary","Too many steps","Missing help","Unclear error","Feels unsafe"].forEach(w=>{const b=document.createElement("button");b.className="chip";b.textContent="+ "+w;b.onclick=()=>{const ins=[...isl.querySelectorAll("input")];const empty=ins.find(i=>!i.value.trim());if(empty)empty.value=w;else addRow(w);sync();};$("#fq").appendChild(b);});
  $("#md").classList.add("open");$(".mdx").onclick=closeMd;
- const liveHref=()=>{if(!live()||SA)return;const v=$("#fnote").value.trim();$("#fsave").href=v?autoUrl(Object.assign(who(),{critique:`${CAP[key]||label||key}: ${v}`})):"#";};
+ const liveHref=()=>{if(!live()||SA)return;const v=$("#fnote").value.trim();$("#fsave").href=v?autoUrl(Object.assign(who(),{critique:issuesOf(v).map(t=>`${CAP[key]||label||key}: ${t}`).join("\n")})):"#";};
  $("#fnote").addEventListener("input",liveHref);$("#fq").addEventListener("click",()=>setTimeout(liveHref,0));liveHref();
  $("#fsave").onclick=e=>{const v=$("#fnote").value.trim();
   if(live()){if(!v){e.preventDefault();return toast("Write your critique first");}if(!S.sent)S.sent={};
-   if(SA){bgSend(Object.assign(who(),{critique:`${CAP[key]||label||key}: ${v}`})).then(()=>{S.sent[key]=v;save();refreshFlags();}).catch(()=>{toast("Saved, but not sent: check the internet, then use Send unsent");refreshFlags();});}else S.sent[key]=v;}
+   if(SA){sendIssues(key,label,v).then(()=>{S.sent[key]=v;save();refreshFlags();}).catch(()=>{toast("Saved, but not sent: check the internet, then use Send unsent");refreshFlags();});}else S.sent[key]=v;}
   if(v)S.flags[key]=v;else delete S.flags[key];if(label)CAP[key]=label;save();setTimeout(()=>{closeMd();refreshFlags();},0);toast(v?(live()?"Saved and sent ✓":"Saved"):"Removed");};
  const d=$("#fdel");if(d)d.onclick=()=>{delete S.flags[key];save();closeMd();refreshFlags();};
 }
@@ -1105,13 +1140,13 @@ R.critique=()=>{
  <div class="card sendcard"><div><b>Send your notes</b><span class="small muted" id="ccount"></span></div><div class="sendbar" id="csend"></div></div>`;
  const paint=()=>{document.querySelectorAll("#cj .chip").forEach(b=>b.setAttribute("aria-pressed",b.dataset.j===S.critJ));
   const allS=FIXJ[S.critJ].s;$("#cerrn").textContent=`(${allS.filter(x=>x[2]).length})`;$("#cerr").checked=!!S.critErr;
-  $("#cgrid").innerHTML=allS.map((x,k)=>[x,k]).filter(([x])=>S.critErr||!x[2]||S.flags[x[0]]).map(([[i,c,e],k])=>{const n=S.flags[i];return `<button class="ct${e?" err":""}${n?" has":""}" data-id="${i}"><span class="ct-n">${k+1}</span><img src="${img(i)}" alt="" loading="lazy"><span class="ct-c">${esc(c)}</span>${n?`<span class="ct-note">🚩 ${esc(n)}</span>${live()?(S.sent&&S.sent[i]===n?'<span class="ct-sent ok">✓ Sent</span>':'<span class="ct-sent no">Not sent yet</span>'):""}`:`<span class="ct-add">+ Write a note</span>`}</button>`;}).join("");
+  $("#cgrid").innerHTML=allS.map((x,k)=>[x,k]).filter(([x])=>S.critErr||!x[2]||S.flags[x[0]]).map(([[i,c,e],k])=>{const n=S.flags[i];return `<button class="ct${e?" err":""}${n?" has":""}" data-id="${i}"><span class="ct-n">${k+1}</span><img src="${img(i)}" alt="" loading="lazy"><span class="ct-c">${esc(c)}</span>${n?`<span class="ct-note">🚩 ${issuesOf(n).length>1?`<b>${issuesOf(n).length} issues</b>`:""}${issuesOf(n).map(t=>`<span>${esc(t)}</span>`).join("")}</span>${live()?(S.sent&&S.sent[i]===n?'<span class="ct-sent ok">✓ Sent</span>':'<span class="ct-sent no">Not sent yet</span>'):""}`:`<span class="ct-add">+ Write a note</span>`}</button>`;}).join("");
   document.querySelectorAll("#cgrid .ct").forEach(b=>b.onclick=()=>openFlag(b.dataset.id));
   const n=critLines().length;
   if(live()){const u=unsent();$("#ccount").innerHTML=!n?" · write a note on a screen first":u.length?` · <b style="color:var(--errtx)">${u.length} not sent yet</b>`:" · all sent ✓";
-   const crit=u.map(([k,v])=>`${CAP[k]||k}: ${v}`).join("\n");
+   const crit=u.flatMap(([k,v])=>issuesOf(v).map(t=>`${CAP[k]||k}: ${t}`)).join("\n");
    $("#csend").innerHTML=u.length?(SA?`<button class="btn p" id="sbx">📤 Send ${u.length} unsent</button>`:`<a class="btn p" id="sbx" href="${esc(autoUrl(Object.assign(who(),{critique:crit})))}" target="_blank" rel="noopener">📤 Send ${u.length} unsent</a>`):`<span class="small muted">Each note is sent when you save it.</span>`;
-   const x=$("#sbx");if(x&&SA)x.addEventListener("click",()=>bgSend(Object.assign(who(),{critique:crit})).then(()=>{u.forEach(([k,v])=>S.sent[k]=v);save();paint();flowBar("critique");toast("Sent ✓");}).catch(()=>toast("Not sent: check the internet")));
+   const x=$("#sbx");if(x&&SA)x.addEventListener("click",()=>(async()=>{for(const [k,v] of u)await sendIssues(k,null,v);})().then(()=>{u.forEach(([k,v])=>S.sent[k]=v);save();paint();flowBar("critique");toast("Sent ✓");}).catch(()=>toast("Not sent: check the internet")));
    else if(x)x.addEventListener("click",()=>{u.forEach(([k,v])=>S.sent[k]=v);save();setTimeout(paint,0);toast("Sent ✓");});flowBar("critique");}
   else{$("#ccount").textContent=n?` · ${n} note${n>1?"s":""} ready`:" · write a note on a screen first";
   const sb=sendBtn(["name","team","critique"],()=>critLines().join("\n"),"📤 Send my critiques","");$("#csend").innerHTML=sb.html;sb.wire();}
@@ -1395,7 +1430,7 @@ function critRows(){const rows=[];const me=(S.name||"").trim()||"You";
 function topGroups(){
  // latest note per person per screen wins (people edit and resend)
  const latest=new Map();
- critRows().forEach(r=>r.text.split(/\r?\n/).forEach(l=>{const x=splitLine(l);if(!x||/^(name|team|critiques?|timestamp)\s*:?$/i.test(l.trim()))return;const k=r.name.toLowerCase()+"|"+(x.scr||normT(x.note));latest.set(k,Object.assign({name:r.name,team:r.team,mine:r.mine},x));}));
+ critRows().forEach(r=>r.text.split(/\r?\n/).forEach(l=>{const x=splitLine(l);if(!x||/^(name|team|critiques?|timestamp)\s*:?$/i.test(l.trim()))return;const k=r.name.toLowerCase()+"|"+x.scr+"|"+normT(x.note);latest.set(k,Object.assign({name:r.name,team:r.team,mine:r.mine},x));}));
  const items=[];const seen=new Set();
  latest.forEach(x=>x.note.split(/\s+·\s+/).map(t=>t.trim()).filter(t=>t.length>1).forEach(t=>{const k=x.name.toLowerCase()+"|"+x.scr+"|"+normT(t);if(seen.has(k))return;seen.add(k);
   items.push({name:x.name,team:x.team,mine:x.mine,scr:x.scr,sid:x.sid,note:t,tk:toksOf(t),h:hsh(x.scr+"|"+normT(t))});}));
@@ -1441,14 +1476,26 @@ R.top=()=>{
     <ul class="tc-q">${q.slice(0,2).join("")}</ul>${q.length>2?`<details class="tc-more"><summary>+${q.length-2} more</summary><ul class="tc-q">${q.slice(2).join("")}</ul></details>`:""}
     <div class="tc-ppl">${g.ppl.map(p=>`<span>${esc(p.name)}${p.team?` · ${esc(p.team)}`:""}</span>`).join("")}</div></div>
    <div class="tc-act"><div class="tc-n"><b>${g.score}</b><span>agree</span><small>🗣 ${g.said} said${g.votes?` · 👍 ${g.votes}`:""}</small></div>
-    ${g.mine?'<span class="small muted tc-you">✓ You said this</span>':g.voted?'<button class="btn s sm" disabled>✓ Agreed</button>':(SA||!live()?`<button class="btn p sm" data-v="${i}">👍 Agree</button>`:`<a class="btn p sm" data-v="${i}" target="_blank" rel="noopener" href="${esc(autoUrl(Object.assign(who(),{idea:"VOTE:"+g.vh})))}">👍 Agree</a>`)}
-    <button class="btn s sm" data-fix="${i}">✏️ Fix this</button>${HOST?`<button class="btn s sm" data-hide="${i}">${g.hidden?"Unhide":"Hide"}</button>`:""}</div></div>`;};
-  const many=gs.filter(g=>g.score>=2),one=gs.filter(g=>g.score<2);
-  $("#tlist").innerHTML=gs.length?(many.length?many.map((g,i)=>card(g,i)).join(""):`<div class="notice">Nothing shared by 2+ people yet. Agree with one below to lift it up.</div>`)+
-   (one.length?`<details class="tc-one"${many.length?"":" open"}><summary>Said by one person <b>${one.length}</b></summary>${one.map((g,i)=>card(g,many.length+i)).join("")}</details>`:"")
+    ${g.mine?'<span class="small muted tc-you">✓ You said this</span>':g.voted?'<button class="btn s sm" disabled>✓ Agreed</button>':(SA||!live()?`<button class="btn p sm" data-v="${gs.indexOf(g)}">👍 Agree</button>`:`<a class="btn p sm" data-v="${gs.indexOf(g)}" target="_blank" rel="noopener" href="${esc(autoUrl(Object.assign(who(),{idea:"VOTE:"+g.vh})))}">👍 Agree</a>`)}
+    <button class="btn s sm" data-fix="${gs.indexOf(g)}">✏️ Fix this</button>${HOST?`<button class="btn s sm" data-hide="${gs.indexOf(g)}">${g.hidden?"Unhide":"Hide"}</button>`:""}</div></div>`;};
+  const many=gs.filter(g=>g.score>=2),top5=many.slice(0,5),one=gs.filter(g=>g.score<2);
+  if(!S.topJ)S.topJ="india";const J=FIXJ[S.topJ].s;
+  const bySid={};gs.forEach(g=>{if(!g.sid)return;let sid=g.sid;const k=J.findIndex(x=>x[0]===sid);if(k<0)return;if(J[k][2]){for(let j=k;j>=0;j--)if(!J[j][2]){sid=J[j][0];break;}}(bySid[sid]=bySid[sid]||[]).push(g);});
+  const pplOf=sid=>{const st=new Set();(bySid[sid]||[]).forEach(g=>g.ppl.forEach(p=>st.add(p.name.toLowerCase())));return st.size;};
+  const mx=Math.max(1,...J.filter(x=>!x[2]).map(x=>pplOf(x[0])));
+  const map=`<div class="pmap-h"><h2>Problem map</h2><div class="chips">${Object.entries(FIXJ).map(([k,j])=>`<button class="chip" data-tj="${k}" aria-pressed="${k===S.topJ}">${j.n}</button>`).join("")}</div></div>
+   <div class="pmap">${J.filter(x=>!x[2]).map(([sid,c])=>{const n=pplOf(sid),heat=n?Math.max(.25,n/mx):0;return `<button class="pm${S.topS===sid?" on":""}${n?"":" zero"}" data-ts="${sid}"><img src="${img(sid)}" alt="" loading="lazy">${n?`<b style="background:rgba(247,39,23,${.45+heat*.55})">${n}</b>`:""}<span>${esc(c)}</span></button>`;}).join("")}</div>`;
+  const sel=S.topS&&bySid[S.topS]?bySid[S.topS].slice().sort((a,b)=>b.score-a.score):null;
+  $("#tlist").innerHTML=gs.length?
+   `<h2 style="margin-top:6px">Top 5 most said</h2>`+(top5.length?top5.map((g,i)=>card(g,i)).join(""):`<div class="notice">Nothing said by 2+ people yet. Tap 👍 Agree on one below to lift it up.</div>`)+
+   map+(S.topS?`<div class="pm-sel"><h3>${esc(CAP[S.topS]||S.topS)} <span class="small muted">${sel?sel.length+" issue"+(sel.length>1?"s":""):"no issues yet"}</span> <button class="btn s sm" id="tsx">✕ Close</button></h3>${sel?sel.map((g,i)=>card(g,i)).join(""):""}</div>`:`<p class="small muted" style="margin:8px 0 0">Tap a screen to see all its issues.</p>`)+
+   (one.length?`<details class="tc-one"><summary>Said by one person <b>${one.length}</b></summary>${one.map((g,i)=>card(g,i)).join("")}</details>`:"")
    :`<div class="notice">No critiques yet. <a href="#critique">Write some in Critique</a>${SA&&!CONFIG.SHEET_CSV?" · the team sheet isn't connected yet":""}.</div>`;
   $("#tlist").querySelectorAll("[data-v]").forEach(b=>b.addEventListener("click",()=>{const g=gs[+b.dataset.v];if(!S.name.trim()){toast("Add your name on Start first");location.hash="#start";return;}
    if(!S.votes)S.votes=[];if(!S.votes.includes(g.vh))S.votes.push(g.vh);save();if(SA)bgSend(Object.assign(who(),{idea:"VOTE:"+g.vh})).catch(()=>{});toast("👍 Counted");setTimeout(paint,0);}));
+  $("#tlist").querySelectorAll("[data-tj]").forEach(b=>b.onclick=()=>{S.topJ=b.dataset.tj;S.topS=null;save();paint();});
+  $("#tlist").querySelectorAll("[data-ts]").forEach(b=>b.onclick=()=>{S.topS=S.topS===b.dataset.ts?null:b.dataset.ts;save();paint();setTimeout(()=>{const el=$(".pm-sel");if(el)el.scrollIntoView({behavior:"smooth",block:"nearest"});},50);});
+  {const x=$("#tsx");if(x)x.onclick=()=>{S.topS=null;save();paint();};}
   $("#tlist").querySelectorAll("[data-fix]").forEach(b=>b.onclick=()=>{pickGroup(gs[+b.dataset.fix]);location.hash="#make";});
   $("#tlist").querySelectorAll("[data-hide]").forEach(b=>b.onclick=()=>{const g=gs[+b.dataset.hide];if(!S.hidden)S.hidden=[];const un=g.hidden;
    if(un){S.hidden=S.hidden.filter(h=>!g.hs.has(h));}else S.hidden.push(g.vh);save();if(SA)bgSend({name:"HOST",team:"Host",idea:(un?"UNHIDE:":"HIDE:")+g.vh}).catch(()=>{});setTimeout(paint,0);});};
@@ -1726,7 +1773,7 @@ Made for (user card):
 Fixes (screen or problem):
 Made with (AI tool / sketch / words):
 Link (if any): `;
-function critLines(){return Object.entries(S.flags).filter(([k])=>!k.startsWith("play:")).map(([k,v])=>`${CAP[k]||k}: ${v}`);}
+function critLines(){return Object.entries(S.flags).filter(([k])=>!k.startsWith("play:")).flatMap(([k,v])=>issuesOf(v).map(t=>`${CAP[k]||k}: ${t}`));}
 function answers(){
  const cd=S.card&&S.card.title?cardText():"";
  const idea=[cd,S.ideas.trim()?"Other ideas: "+S.ideas.trim():""].filter(Boolean).join("\n\n");
