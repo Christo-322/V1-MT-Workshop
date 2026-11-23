@@ -684,6 +684,16 @@ nav a.locked{opacity:.55}nav a.locked .nn{display:none}
 body.hasnext main{padding-bottom:110px}
 .play3 .sr{max-height:calc((100vh - 200px) / var(--z,1));overflow-y:auto;scrollbar-width:thin}
 @media(max-width:900px){.play3 .sr{max-height:none}}
+
+.hmwgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.hmw{position:relative;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px}
+.hmw .vm-like{top:10px;right:10px}
+.hmw-iss{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);padding-right:52px}
+.hmw-ic{font-size:20px;width:34px;height:34px;border-radius:10px;background:var(--line2,#f2f4f7);display:grid;place-items:center;flex:none}
+.hmw-q{margin:0;font-size:18px;line-height:1.3;color:var(--navy);font-weight:500}
+.hmw-q span{display:block;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:#2d6cdf;font-weight:500;margin-bottom:2px}
+.hmw-ids{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto}
+.hmw-id{font-size:12.5px;background:#eef4ff;color:#1f3b73;border-radius:999px;padding:5px 10px}
 </style>
 </head>
 <body>
@@ -1565,23 +1575,15 @@ function newPerson(){const keep={resetSeen:S.resetSeen,resetPending:S.resetPendi
  ["flags","sent","votes","hidden","likes","card","pick","fix","idea","ideas","pulse","cons","upl","mark","build","seen","teamRaw","ltab","critErr","uid"].forEach(x=>delete S[x]);
  S.flags={};S.cons=[];Object.assign(S,keep);S.uid=Math.random().toString(36).slice(2,8);}
 
-const IDEA_COMPS=[
- ["verify","Verified name before sending","Trust",()=>[B("receiver",{name:"RAMESH KUMAR",sub:"Federal Bank · ••6248",ok:true}),B("banner",{text:"Name checked with Federal Bank",tone:"good"})]],
- ["eta","Delivery time on summary","Clarity",()=>[B("banner",{text:"Arrives today by 6 pm",tone:"good"})]],
- ["refund","Refund promise in the flow","Trust",()=>[B("banner",{text:"If it's late, we refund your fee",tone:"info"})]],
- ["progress","Progress bar for adding a receiver","Ease",()=>[B("steps",{labels:"Receiver, Bank, Account, Done",cur:"2"})]],
- ["validated","Details checked (new users)","Trust",()=>[B("input",{label:"Account number",value:"2074010056248",ph:""}),B("banner",{text:"Account details checked",tone:"good"})]],
- ["autofill","Add receiver from photo, text or voice","Ease",()=>[B("option",{icon:"🎤",title:"Speak or paste",sub:"Photo, WhatsApp text or voice"})]],
- ["language","Help in your language","Ease",()=>[B("option",{icon:"🔊",title:"Listen in Hindi",sub:"Audio help for this screen"})]],
- ["chips","Quick amounts","Ease",()=>[B("chips",{items:"100, 250, 500, 1000"})]],
- ["fee","All-in price, one line","Clarity",()=>[B("amount",{aed:"100.00",loc:"2517.00",cur:"INR",rate:"AED 1 = INR 25.17",fee:"FEE AED 21"})]],
- ["social","People like you send here","Trust",()=>[B("banner",{text:"1,240 people from your company sent money this month",tone:"info"})]],
- ["test","Free AED 5 test transfer","Trust",()=>[B("banner",{text:"Try a free AED 5 test transfer first",tone:"good"})]],
- ["prewarn","Warn early about ID checks","Clarity",()=>[B("banner",{text:"This transfer may need an ID check. Keep your Emirates ID ready.",tone:"warn"})]],
- ["firstfree","Show 'first transfer free' up front","Clarity",()=>[B("banner",{text:"Your first transfer is FREE",tone:"good"}),B("button",{text:"Send money home",style:"primary"})]]];
-function drawComp(cv,blocks){const tmp=document.createElement("canvas");tmp.width=BW*2;tmp.height=BH*2;const c=tmp.getContext("2d");c.scale(2,2);const hits=drawBuild(c,blocks,-1);
- const y0=Math.max(0,Math.min(...hits.map(h=>h.y0))-10),y1=Math.min(BH,Math.max(...hits.map(h=>h.y1))+8),h=y1-y0;
- cv.width=BW*2;cv.height=h*2;cv.getContext("2d").drawImage(tmp,0,y0*2,BW*2,h*2,0,0,BW*2,h*2);cv.style.width="100%";}
+const HMW=[
+ ["receiver","🧾","Only 57% finish adding a receiver","make adding a receiver feel quick and easy?",["Progress bar, fewer steps","Add from photo, text or voice"]],
+ ["ifsc","🏦","Most people don't know their IFSC","help people pick the right bank without an IFSC?",["Choose bank by logo","Read it from a passbook photo"]],
+ ["deadend","🔍","Search shows a blank screen","make sure no one hits a dead end?",["Show close matches","Help in your language"]],
+ ["typos","🔢","Long numbers typed with no check","catch mistakes like the exchange-house clerk does?",["Details checked ✓","Verified name before sending"]],
+ ["fear","😟","People fear the money gets stuck","make people feel sure their money will arrive?",["Refund promise in the flow","Delivery time on summary","Free AED 5 test transfer"]],
+ ["errors","⚠️","Errors show codes, not next steps","tell people what to do when something goes wrong?",["Audio help per field","Warn early about ID checks"]],
+ ["price","💱","Rate, fee and amount feel like 3 numbers","show one clear amount the family gets?",["All-in price, one line","Show 'first transfer free' up front"]],
+ ["trust","👥","New users don't trust sending yet","build trust before the first transfer?",["Real people's stories","\"1,240 from your company sent money\""]]];
 function likeCounts(){const per=new Map();LIVE_ROWS.forEach(r=>{const m=/^(UN)?LIKE:([\w-]+)/.exec(r.idea);if(!m)return;const n=(r.name||"?").toLowerCase();if(!per.has(m[2]))per.set(m[2],new Set());m[1]?per.get(m[2]).delete(n):per.get(m[2]).add(n);});
  const me=((S.name||"").trim()||"you").toLowerCase();Object.keys(Object.fromEntries(per)).forEach(()=>{});
  (S.likes||[]).forEach(k=>{if(!per.has(k))per.set(k,new Set());per.get(k).add(me);});per.forEach((set,k)=>{if(!(S.likes||[]).includes(k))set.delete(me);});
@@ -1865,7 +1867,7 @@ R.inspire=()=>{
  ${CONFIG.FUNNEL?`<div class="dslot" style="margin-top:14px"><button class="dimg" data-zoom="${esc(CONFIG.FUNNEL)}" data-cap="Money transfer funnel"><img src="${esc(CONFIG.FUNNEL)}" alt="Funnel"></button></div>`:""}
  <div class="itabs" role="tablist">${TABS.map(([k,n])=>`<button role="tab" data-t="${k}">${n}</button>`).join("")}</div>
  ${TABS.map(([k])=>`<div class="ipane" id="${k}"></div>`).join("")}
- <h2 style="margin-top:34px">Moodboard</h2><p class="muted" style="margin-top:0">Ideas from the brainstorm, drawn as C3Pay components. Tap 🤍 on the ones you like.</p>
+ <h2 style="margin-top:34px">How might we…</h2><p class="muted" style="margin-top:0">Our known problems, turned into questions for Make. Tap 🤍 on the ones you want to solve.</p>
  <div class="chips mfil" id="mfil"></div><div class="mood" id="mood"></div>`;
  wireZoom($("#v-inspire"));
  viewer($("#asp"),ASPORA.map(([n,c,p],k)=>({src:COMP(IMGA(`img/comp/aspora-${n}.jpg`)),app:"Aspora",cap:c,good:CRIT_ASP[k][0].slice(0,1),bad:CRIT_ASP[k][1].slice(0,1)})),{strip:true});
@@ -1874,17 +1876,17 @@ R.inspire=()=>{
  viewer($("#mob"),MOBBIN.map(([a,c,st,b,u,id],k)=>({src:COMP(`img/mob/m${String(k+1).padStart(2,"0")}.jpg`),app:a,cap:c,best:b,us:u,link:`https://mobbin.com/screens/${id}`})),{strip:true});
  const show=t=>{S.insTab=t;save();document.querySelectorAll(".itabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.t===t));TABS.forEach(([k])=>$("#"+k).hidden=k!==t);};
  document.querySelectorAll(".itabs button").forEach(b=>b.onclick=()=>show(b.dataset.t));show(S.insTab);
- const MI=IDEA_COMPS.map(([k,t,cat,bl])=>({k:"cmp-"+k,t,cat,bl}));
- const F=[["all","All"],["Trust","Trust"],["Clarity","Clarity"],["Ease","Ease"],["top","❤️ Most liked"]];
+ const F=[["all","All"],["top","❤️ Most liked"]];
  if(!S.moodF||!F.some(f=>f[0]===S.moodF))S.moodF="all";
  $("#mfil").innerHTML=F.map(([k,n])=>`<button class="chip" data-f="${k}">${n}</button>`).join("");
  const paintMood=()=>{const L=likeCounts(),mine=new Set(S.likes||[]);document.querySelectorAll("#mfil .chip").forEach(b=>b.setAttribute("aria-pressed",b.dataset.f===S.moodF));
-  let arr=MI.filter(m=>S.moodF==="all"||S.moodF==="top"||m.cat===S.moodF);
+  let arr=HMW.map(([k,ic,iss,q,ids])=>({k:"hmw-"+k,ic,iss,q,ids}));
   if(S.moodF==="top")arr=arr.filter(m=>(L[m.k]||0)>0).sort((a,b)=>(L[b.k]||0)-(L[a.k]||0));
-  $("#mood").innerHTML=arr.length?`<div class="cmpgrid">${arr.map(m=>`<figure class="cmp"><div class="cmp-c"><canvas data-c="${m.k}"></canvas></div>
+  $("#mood").innerHTML=arr.length?`<div class="hmwgrid">${arr.map((m,i)=>`<article class="hmw">
    <button class="vm-like${mine.has(m.k)?" on":""}" data-l="${m.k}" aria-label="Like">${mine.has(m.k)?"❤️":"🤍"}<b>${L[m.k]||""}</b></button>
-   <figcaption><b>${esc(m.t)}</b><span>${esc(m.cat)}</span></figcaption></figure>`).join("")}</div>`:`<div class="notice">No likes yet. Tap 🤍 on a component.</div>`;
-  $("#mood").querySelectorAll("canvas[data-c]").forEach(cv=>{const m=MI.find(x=>x.k===cv.dataset.c);drawComp(cv,m.bl());});
+   <div class="hmw-iss"><span class="hmw-ic">${m.ic}</span>${esc(m.iss)}</div>
+   <p class="hmw-q"><span>How might we</span> ${esc(m.q)}</p>
+   <div class="hmw-ids">${m.ids.map(t=>`<span class="hmw-id">💡 ${esc(t)}</span>`).join("")}</div></article>`).join("")}</div>`:`<div class="notice">No likes yet. Tap 🤍 on a question.</div>`;
   $("#mood").querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{const k=b.dataset.l;if(!S.likes)S.likes=[];const on=S.likes.includes(k);
    S.likes=on?S.likes.filter(x=>x!==k):[...S.likes,k];save();if(SA)bgSend(Object.assign(who(),{idea:(on?"UNLIKE:":"LIKE:")+k})).catch(()=>{});paintMood();});};
  document.querySelectorAll("#mfil .chip").forEach(b=>b.onclick=()=>{S.moodF=b.dataset.f;save();paintMood();});
