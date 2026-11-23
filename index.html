@@ -989,7 +989,7 @@ const LIVE={
  lv08:{base:"lv08",auto:"acct",fields:[{k:"acct",r:[17,258,326,43],kb:"num",ph:"",max:18,digits:true}],btns:[[16,456,328,44]],
   extra:()=>[{html:bankBlock()}],
   submit(){const v=LV.acct.replace(/\D/g,"");if(v.length<11)return sheet("acct11");LV.saved=null;liveNext();}},
- lv05:{base:"lv05",amount:"INR",auto:"aed",extra:()=>isRep()?[T("500.00 AED",124,154,100,17,"700 12.5px Ubuntu,sans-serif","#1f2a33","left"),{t:"text",txt:`FEE: AED ${FEE().toFixed(2)}`,x:196,y:350,w:137,h:18,font:"700 12.5px Ubuntu,sans-serif",color:"#0b3a53",align:"right",mask:false,html:`<div class="lv-text" style="left:196px;top:350px;width:137px;height:18px;font:700 12.5px Ubuntu,sans-serif;color:#0b3a53;text-align:right;line-height:18px;background:#f9fafc">FEE: AED ${FEE().toFixed(2)}</div>`}]:[],btns:[[16,723,328,44]],submit(){amountSubmit();}},
+ lv05:{base:"lv05",amount:"INR",auto:"aed",extra:()=>isRep()?[T("500.00 AED",124,154,100,17,"700 12.5px Ubuntu,sans-serif","#1f2a33","left"),{t:"text",txt:`FEE: AED ${FEE().toFixed(2)}`,x:196,y:350,w:137,h:18,font:"700 12.5px Ubuntu,sans-serif",color:"#0b3a53",align:"right",mask:false,html:`<div class="lv-text" style="left:196px;top:350px;width:137px;height:18px;font:700 12.5px Ubuntu,sans-serif;color:#0b3a53;text-align:right;line-height:18px;background:#f9fafc"></div>`}]:[],btns:[[16,723,328,44]],submit(){amountSubmit();}},
  pw3:{base:"pw3",amount:"PKR",auto:"aed",btns:[[16,723,328,44]],submit(){amountSubmit();}},
  lv01:{base:"lv01",btns:[[16,723,328,44]],
   extra:()=>{const s=SUMMARY_ROWS("INR");const acc=LV.saved?LV.saved.acct:LV.acct;return [
