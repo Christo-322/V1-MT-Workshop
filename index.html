@@ -662,12 +662,28 @@ nav a.locked{opacity:.55}nav a.locked .nn{display:none}
 .lv-bankblk b{font:500 15.5px Ubuntu,sans-serif;color:#0a1823;letter-spacing:.2px}
 .lv-bankblk span{font:300 11.5px Ubuntu,sans-serif;color:#303030}
 
-.lv-dis{position:absolute;display:none;box-shadow:0 0 0 3px #fff,0 8px 0 3px #fff;align-items:center;justify-content:center;background:#f5f6f8;border-radius:8px;font:500 15px Ubuntu,sans-serif;color:#d2d6db;z-index:5;cursor:default}
+.lv-dis{position:absolute;display:none;box-shadow:0 0 0 2px #fff;align-items:center;justify-content:center;background:#f5f6f8;border-radius:8px;font:500 15px Ubuntu,sans-serif;color:#d2d6db;z-index:3;cursor:default}
 .lv-amtcta.dis{background-image:none!important;background:transparent}
 .lv-amtcta.dis::after{content:"Send Now";position:absolute;left:16px;top:11px;width:328px;height:44px;border-radius:8px;background:#f5f6f8;color:#d2d6db;font:500 15px/44px Ubuntu,sans-serif;text-align:center}
 
 .dashbal{position:absolute;left:12px;top:68px;width:200px;height:32px;background:#fff;font:400 19px Ubuntu,sans-serif;color:#0b3a53;display:flex;align-items:baseline;gap:0}
 .dashbal b{font:700 30px Ubuntu,sans-serif;color:#0b3a53;letter-spacing:-.5px}
+
+.cmpgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.cmp{margin:0;position:relative;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.cmp-c{padding:10px 8px 4px;background:#fff;flex:1;display:flex;align-items:center}
+.cmp-c canvas{display:block}
+.cmp .vm-like{top:8px;right:8px}
+.cmp figcaption{padding:8px 12px 10px;border-top:1px solid var(--line2);display:flex;flex-direction:column;gap:2px}
+.cmp figcaption b{font-size:13.5px;color:var(--navy);font-weight:500}.cmp figcaption span{font-size:11px;color:var(--muted)}
+/* toggles: clean switch */
+.dtog .sw{border:0!important;box-shadow:none!important;width:32px!important;height:18px!important;border-radius:999px!important;background:#dfe1e6}
+.dtog .sw::after{border-radius:50%!important;width:14px!important;height:14px!important;top:2px!important;left:2px!important;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.dtog[aria-checked=true] .sw::after{left:16px!important}
+/* keep content clear of the floating Next button */
+body.hasnext main{padding-bottom:110px}
+.play3 .sr{max-height:calc((100vh - 200px) / var(--z,1));overflow-y:auto;scrollbar-width:thin}
+@media(max-width:900px){.play3 .sr{max-height:none}}
 </style>
 </head>
 <body>
@@ -1043,7 +1059,8 @@ function sheet(k){const [im,top,btns]=SHEETS[k];const st=$("#pstage");const o=do
   if(btns){const b=btns.find(b=>y>=b[0]&&y<=b[1]);if(!b)return;o.remove();if(b[2]==="send"){LV.aed=String((BAL-FEE()).toFixed(2));liveNext();}else focusField(LF);}
   else if(y>=top+200){o.remove();focusField(LF);}});
  hideKb(true);st.appendChild(o);PR.L.whatifs.push("Typed → error: "+k);}
-function kbHTML(type){const K=KB[type];return `<div class="lv-kb" data-kb="${type}" style="top:${K.top}px;height:${800-K.top}px;background-image:url('${img(K.img)}');background-position:0 -${K.top}px">${K.keys.map(([c,x,y,w,h])=>`<button tabindex="-1" data-key="${esc(c)}" style="left:${x}px;top:${y-K.top}px;width:${w}px;height:${h}px"></button>`).join("")}</div>`;}
+function kbHTML(type){const K=KB[type];const d=LIVE[PR.cur]||{};const bt=(d.btns||[]).reduce((m,b)=>Math.max(m,b[1]+b[3]),0);const off=Math.max(0,Math.min(40,bt+10-K.top));const T=K.top+off;
+ return `<div class="lv-kb" data-kb="${type}" style="top:${T}px;height:${800-T}px;background-image:url('${img(K.img)}');background-position:0 -${K.top}px">${K.keys.map(([c,x,y,w,h])=>`<button tabindex="-1" data-key="${esc(c)}" style="left:${x}px;top:${y-K.top}px;width:${w}px;height:${h}px"></button>`).join("")}</div>`;}
 function hideKb(force){const k=document.querySelector("#plive .lv-kb");const d=LIVE[PR.cur];if(d&&d.baked&&!force){showKb(d.baked);return;}if(k)k.remove();}
 function showKb(type){const live=$("#plive");const cur=live.querySelector(".lv-kb");if(cur&&cur.dataset.kb===type)return;if(cur)cur.remove();
  live.insertAdjacentHTML("beforeend",kbHTML(type));const kb=live.querySelector(".lv-kb");
@@ -1361,9 +1378,9 @@ const MW=280,MH=607;const bgImgs={};
 function loadImg(src){if(!src)return null;if(!bgImgs[src]){const i=new Image();i.src=src;bgImgs[src]=i;}return bgImgs[src];}
 function setupHiDPI(cv,w,h,k){k=k||2;cv.width=w*k;cv.height=h*k;cv.style.width=w+"px";cv.style.height=h+"px";const c=cv.getContext("2d");c.setTransform(k,0,0,k,0,0);return c;}
 const FIXJ={
- india:{n:"🇮🇳 India bank transfer",s:[["dash","Dashboard"],["lv19","Money Transfer home (repeat users)"],["lv18","Choose how to send"],["lv17","Receiver name"],["lv16","Error: enter full name",1],["lv15","Choose one option"],["sb1","Select bank"],["sb3","Bank search: nothing found",1],["sb4","Select branch"],["sb6","Branch search: nothing found",1],["lv09","Enter IFSC code"],["lv12","Error: IFSC too short",1],["lv10","Error: wrong IFSC",1],["lv08","Enter account number"],["lv07","Error: account number too short",1],["lv05","Enter amount"],["lv04","Error: under 25 AED",1],["lv02","Error: fee doesn't fit",1],["30812","Error: monthly limit",1],["lv01","Summary"],["31385","Purpose of transfer"],["31614","Error: unsupported purpose",1],["27906","Enter OTP"],["30919","Error: wrong OTP",1],["30980","Error: time out",1],["31016","Error: receiver creation",1]]},
- wallet:{n:"🇵🇰 Pakistan Easy Paisa wallet",s:[["dash","Dashboard"],["lv19","Money Transfer home"],["pw1","Transfer Method"],["pw2","Who are you sending to?"],["pwe2","Error: enter full details",1],["pwe1","Error: wrong mobile number",1],["27297","Error: name must match wallet",1],["27301","Error: fewer than 3 letters",1],["27305","Error: name too long",1],["pw3","Enter amount (PKR)"],["30758","Error: under 25 AED",1],["30652","Error: balance is low",1],["30812","Error: monthly limit",1],["pw4","Summary"],["31385","Purpose of transfer"],["27906","Enter OTP"],["30919","Error: wrong OTP",1],["30980","Error: time out",1]]},
- after:{n:"📬 After the transfer (all flows)",s:[["27898","Transfer is on the way"],["28203","Transfer failed",1],["28384","Spin the wheel"],["29486","You won AED 50"],["27916","Feedback"],["27957","Thanks for feedback"],["28004","Invite friends"],["32312","Transfer history"],["32334","Transfer status detail"],["32339","Status: failed",1]]}
+ india:{n:"🇮🇳 India bank transfer",s:[["dash","Dashboard"],["lv19","Money Transfer home (repeat users)"],["lv18","Choose how to send"],["lv17","Receiver name"],["lv16","Error: enter full name",1],["lv15","Choose one option"],["sb1","Select bank"],["sb3","Bank search: nothing found",1],["sb4","Select branch"],["sb6","Branch search: nothing found",1],["lv09","Enter IFSC code"],["lv12","Error: IFSC too short",1],["lv10","Error: wrong IFSC",1],["lv08","Enter account number"],["lv07","Error: account number too short",1],["lv05","Enter amount"],["lv04","Error: under 25 AED",1],["lv02","Error: fee doesn't fit",1],["30812","Error: monthly limit",1],["lv01","Summary"],["31385","Purpose of transfer"],["31614","Error: unsupported purpose",1],["27906","Enter OTP"],["30919","Error: wrong OTP",1],["30980","Error: time out",1],["31016","Error: receiver creation",1],["27898","Transfer successful"],["28203","Transfer failed",1]]},
+ wallet:{n:"🇵🇰 Pakistan Easy Paisa wallet",s:[["dash","Dashboard"],["lv19","Money Transfer home"],["pw1","Transfer Method"],["pw2","Who are you sending to?"],["pwe2","Error: enter full details",1],["pwe1","Error: wrong mobile number",1],["27297","Error: name must match wallet",1],["27301","Error: fewer than 3 letters",1],["27305","Error: name too long",1],["pw3","Enter amount (PKR)"],["30758","Error: under 25 AED",1],["30652","Error: balance is low",1],["30812","Error: monthly limit",1],["pw4","Summary"],["31385","Purpose of transfer"],["27906","Enter OTP"],["30919","Error: wrong OTP",1],["30980","Error: time out",1],["27898","Transfer successful"],["28203","Transfer failed",1]]},
+ after:{n:"📬 After the transfer (all flows)",s:[["28384","Spin the wheel"],["29486","You won AED 50"],["27916","Feedback"],["27957","Thanks for feedback"],["28004","Invite friends"],["32312","Transfer history"],["32334","Transfer status detail"],["32339","Status: failed",1]]}
 };
 const jOf=id=>["india","wallet","after"].find(k=>FIXJ[k].s.some(x=>x[0]===id))||"india";
 Object.values(FIXJ).forEach(j=>j.s.forEach(([i,c])=>{if(!CAP[i])CAP[i]=c;}));
@@ -1547,6 +1564,24 @@ function nameTaken(k){return LIVE_ROWS.some(r=>(r.name||"").trim().toLowerCase()
 function newPerson(){const keep={resetSeen:S.resetSeen,resetPending:S.resetPending,host:S.host,insTab:S.insTab,dtog:S.dtog};
  ["flags","sent","votes","hidden","likes","card","pick","fix","idea","ideas","pulse","cons","upl","mark","build","seen","teamRaw","ltab","critErr","uid"].forEach(x=>delete S[x]);
  S.flags={};S.cons=[];Object.assign(S,keep);S.uid=Math.random().toString(36).slice(2,8);}
+
+const IDEA_COMPS=[
+ ["verify","Verified name before sending","Trust",()=>[B("receiver",{name:"RAMESH KUMAR",sub:"Federal Bank · ••6248",ok:true}),B("banner",{text:"Name checked with Federal Bank",tone:"good"})]],
+ ["eta","Delivery time on summary","Clarity",()=>[B("banner",{text:"Arrives today by 6 pm",tone:"good"})]],
+ ["refund","Refund promise in the flow","Trust",()=>[B("banner",{text:"If it's late, we refund your fee",tone:"info"})]],
+ ["progress","Progress bar for adding a receiver","Ease",()=>[B("steps",{labels:"Receiver, Bank, Account, Done",cur:"2"})]],
+ ["validated","Details checked (new users)","Trust",()=>[B("input",{label:"Account number",value:"2074010056248",ph:""}),B("banner",{text:"Account details checked",tone:"good"})]],
+ ["autofill","Add receiver from photo, text or voice","Ease",()=>[B("option",{icon:"🎤",title:"Speak or paste",sub:"Photo, WhatsApp text or voice"})]],
+ ["language","Help in your language","Ease",()=>[B("option",{icon:"🔊",title:"Listen in Hindi",sub:"Audio help for this screen"})]],
+ ["chips","Quick amounts","Ease",()=>[B("chips",{items:"100, 250, 500, 1000"})]],
+ ["fee","All-in price, one line","Clarity",()=>[B("amount",{aed:"100.00",loc:"2517.00",cur:"INR",rate:"AED 1 = INR 25.17",fee:"FEE AED 21"})]],
+ ["social","People like you send here","Trust",()=>[B("banner",{text:"1,240 people from your company sent money this month",tone:"info"})]],
+ ["test","Free AED 5 test transfer","Trust",()=>[B("banner",{text:"Try a free AED 5 test transfer first",tone:"good"})]],
+ ["prewarn","Warn early about ID checks","Clarity",()=>[B("banner",{text:"This transfer may need an ID check. Keep your Emirates ID ready.",tone:"warn"})]],
+ ["firstfree","Show 'first transfer free' up front","Clarity",()=>[B("banner",{text:"Your first transfer is FREE",tone:"good"}),B("button",{text:"Send money home",style:"primary"})]]];
+function drawComp(cv,blocks){const tmp=document.createElement("canvas");tmp.width=BW*2;tmp.height=BH*2;const c=tmp.getContext("2d");c.scale(2,2);const hits=drawBuild(c,blocks,-1);
+ const y0=Math.max(0,Math.min(...hits.map(h=>h.y0))-10),y1=Math.min(BH,Math.max(...hits.map(h=>h.y1))+8),h=y1-y0;
+ cv.width=BW*2;cv.height=h*2;cv.getContext("2d").drawImage(tmp,0,y0*2,BW*2,h*2,0,0,BW*2,h*2);cv.style.width="100%";}
 function likeCounts(){const per=new Map();LIVE_ROWS.forEach(r=>{const m=/^(UN)?LIKE:([\w-]+)/.exec(r.idea);if(!m)return;const n=(r.name||"?").toLowerCase();if(!per.has(m[2]))per.set(m[2],new Set());m[1]?per.get(m[2]).delete(n):per.get(m[2]).add(n);});
  const me=((S.name||"").trim()||"you").toLowerCase();Object.keys(Object.fromEntries(per)).forEach(()=>{});
  (S.likes||[]).forEach(k=>{if(!per.has(k))per.set(k,new Set());per.get(k).add(me);});per.forEach((set,k)=>{if(!(S.likes||[]).includes(k))set.delete(me);});
@@ -1825,12 +1860,12 @@ const NUMS=[["57%","finish adding a receiver","Funnel data"],["20 of 55","fear m
 R.inspire=()=>{
  const TABS=[["asp","Aspora"],["ttp","Taptap Send"],["oth","Botim"],["mob","⭐ Best in world"]];
  if(!S.insTab)S.insTab="asp";
- $("#v-inspire").innerHTML=`<h1>What others do better</h1>
+ $("#v-inspire").innerHTML=`<h1>What other players do</h1>
  <p class="lead">Swipe through real screens. Steal what works.</p>
  ${CONFIG.FUNNEL?`<div class="dslot" style="margin-top:14px"><button class="dimg" data-zoom="${esc(CONFIG.FUNNEL)}" data-cap="Money transfer funnel"><img src="${esc(CONFIG.FUNNEL)}" alt="Funnel"></button></div>`:""}
  <div class="itabs" role="tablist">${TABS.map(([k,n])=>`<button role="tab" data-t="${k}">${n}</button>`).join("")}</div>
  ${TABS.map(([k])=>`<div class="ipane" id="${k}"></div>`).join("")}
- <h2 style="margin-top:34px">Moodboard</h2><p class="muted" style="margin-top:0">Components worth stealing. Tap 🤍 on the ones you like, tap the picture for the full screen.</p>
+ <h2 style="margin-top:34px">Moodboard</h2><p class="muted" style="margin-top:0">Ideas from the brainstorm, drawn as C3Pay components. Tap 🤍 on the ones you like.</p>
  <div class="chips mfil" id="mfil"></div><div class="mood" id="mood"></div>`;
  wireZoom($("#v-inspire"));
  viewer($("#asp"),ASPORA.map(([n,c,p],k)=>({src:COMP(IMGA(`img/comp/aspora-${n}.jpg`)),app:"Aspora",cap:c,good:CRIT_ASP[k][0].slice(0,1),bad:CRIT_ASP[k][1].slice(0,1)})),{strip:true});
@@ -1839,20 +1874,17 @@ R.inspire=()=>{
  viewer($("#mob"),MOBBIN.map(([a,c,st,b,u,id],k)=>({src:COMP(`img/mob/m${String(k+1).padStart(2,"0")}.jpg`),app:a,cap:c,best:b,us:u,link:`https://mobbin.com/screens/${id}`})),{strip:true});
  const show=t=>{S.insTab=t;save();document.querySelectorAll(".itabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.t===t));TABS.forEach(([k])=>$("#"+k).hidden=k!==t);};
  document.querySelectorAll(".itabs button").forEach(b=>b.onclick=()=>show(b.dataset.t));show(S.insTab);
- const MI=[...ASPORA.map(([n,c,p])=>({k:"asp-"+n,app:"Aspora",t:p,full:COMP(IMGA(`img/comp/aspora-${n}.jpg`)),cap:c})),
-  ...TAPTAP.map(([c,p],i)=>({k:"ttp-"+(i+1),app:"Taptap Send",t:p,full:COMP(`img/comp/taptap-${String(i+1).padStart(2,"0")}.jpg`),cap:c})),
-  ...BOTIM.map(([c,p],i)=>({k:"bot-"+(i+1),app:"Botim",t:p,full:COMP(`img/comp/botim-${String(i+1).padStart(2,"0")}.jpg`),cap:c})),
-  ...MOBBIN.map(([a,c],i)=>({k:"mob-"+(i+1),app:a,best:1,t:c,full:COMP(`img/mob/m${String(i+1).padStart(2,"0")}.jpg`),cap:c}))].map(m=>Object.assign(m,{src:COMP(`img/mood/${m.k}.jpg`)}));
- const F=[["all","All"],["Aspora","Aspora"],["Taptap Send","Taptap Send"],["Botim","Botim"],["best","⭐ Best in world"],["top","❤️ Most liked"]];
+ const MI=IDEA_COMPS.map(([k,t,cat,bl])=>({k:"cmp-"+k,t,cat,bl}));
+ const F=[["all","All"],["Trust","Trust"],["Clarity","Clarity"],["Ease","Ease"],["top","❤️ Most liked"]];
  if(!S.moodF||!F.some(f=>f[0]===S.moodF))S.moodF="all";
  $("#mfil").innerHTML=F.map(([k,n])=>`<button class="chip" data-f="${k}">${n}</button>`).join("");
  const paintMood=()=>{const L=likeCounts(),mine=new Set(S.likes||[]);document.querySelectorAll("#mfil .chip").forEach(b=>b.setAttribute("aria-pressed",b.dataset.f===S.moodF));
-  let arr=MI.filter(m=>S.moodF==="all"||S.moodF==="top"||(S.moodF==="best"?m.best:(!m.best&&m.app===S.moodF)));
+  let arr=MI.filter(m=>S.moodF==="all"||S.moodF==="top"||m.cat===S.moodF);
   if(S.moodF==="top")arr=arr.filter(m=>(L[m.k]||0)>0).sort((a,b)=>(L[b.k]||0)-(L[a.k]||0));
-  $("#mood").innerHTML=arr.length?`<div class="vmood">${arr.map(m=>`<figure class="vm"><button class="vm-im" data-z="${m.k}" aria-label="Open full screen"><img src="${m.src}" alt="" loading="lazy"></button>
+  $("#mood").innerHTML=arr.length?`<div class="cmpgrid">${arr.map(m=>`<figure class="cmp"><div class="cmp-c"><canvas data-c="${m.k}"></canvas></div>
    <button class="vm-like${mine.has(m.k)?" on":""}" data-l="${m.k}" aria-label="Like">${mine.has(m.k)?"❤️":"🤍"}<b>${L[m.k]||""}</b></button>
-   <figcaption><b>${esc(m.t)}</b><span>${esc(m.app)}</span></figcaption></figure>`).join("")}</div>`:`<div class="notice">No likes yet. Tap 🤍 on a component.</div>`;
-  $("#mood").querySelectorAll("[data-z]").forEach(b=>b.onclick=()=>{const m=MI.find(x=>x.k===b.dataset.z);zoom(m.full,m.app+": "+m.cap);});
+   <figcaption><b>${esc(m.t)}</b><span>${esc(m.cat)}</span></figcaption></figure>`).join("")}</div>`:`<div class="notice">No likes yet. Tap 🤍 on a component.</div>`;
+  $("#mood").querySelectorAll("canvas[data-c]").forEach(cv=>{const m=MI.find(x=>x.k===cv.dataset.c);drawComp(cv,m.bl());});
   $("#mood").querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{const k=b.dataset.l;if(!S.likes)S.likes=[];const on=S.likes.includes(k);
    S.likes=on?S.likes.filter(x=>x!==k):[...S.likes,k];save();if(SA)bgSend(Object.assign(who(),{idea:(on?"UNLIKE:":"LIKE:")+k})).catch(()=>{});paintMood();});};
  document.querySelectorAll("#mfil .chip").forEach(b=>b.onclick=()=>{S.moodF=b.dataset.f;save();paintMood();});
