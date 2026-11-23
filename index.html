@@ -661,6 +661,10 @@ nav a.locked{opacity:.55}nav a.locked .nn{display:none}
 .lv-bankblk div{display:flex;flex-direction:column;gap:3px}
 .lv-bankblk b{font:500 15.5px Ubuntu,sans-serif;color:#0a1823;letter-spacing:.2px}
 .lv-bankblk span{font:300 11.5px Ubuntu,sans-serif;color:#303030}
+
+.lv-dis{position:absolute;display:none;box-shadow:0 0 0 3px #fff,0 8px 0 3px #fff;align-items:center;justify-content:center;background:#f5f6f8;border-radius:8px;font:500 15px Ubuntu,sans-serif;color:#d2d6db;z-index:5;cursor:default}
+.lv-amtcta.dis{background-image:none!important;background:transparent}
+.lv-amtcta.dis::after{content:"Send Now";position:absolute;left:16px;top:11px;width:328px;height:44px;border-radius:8px;background:#f5f6f8;color:#d2d6db;font:500 15px/44px Ubuntu,sans-serif;text-align:center}
 </style>
 </head>
 <body>
@@ -1048,9 +1052,11 @@ function keyPress(c){const inp=LF&&document.querySelector(`#plive input[data-k="
  else{if(inp.maxLength>0&&inp.value.length>=inp.maxLength)return;inp.value+=SHIFT?c.toUpperCase():c;SHIFT=false;}
  inp.dispatchEvent(new Event("input"));}
 function doneKey(){const d=LIVE[PR.cur];const fs=d.fields||[];const i=fs.findIndex(f=>f.k===LF);if(i>=0&&i<fs.length-1){focusField(fs[i+1].k);return;}
- if(d.okSubmit&&d.submit){const inp=document.querySelector("#plive input:focus");if(inp)inp.blur();d.submit();}else{const inp=document.querySelector("#plive input:focus");if(inp)inp.blur();LF=null;hideKb();paintFrames();}}
+ if(d.okSubmit&&d.submit&&ctaReady()){const inp=document.querySelector("#plive input:focus");if(inp)inp.blur();d.submit();}else{const inp=document.querySelector("#plive input:focus");if(inp)inp.blur();LF=null;hideKb();paintFrames();}}
 function focusField(k){if(!k)return;const inp=document.querySelector(`#plive input[data-k="${k}"]`);if(inp){inp.focus({preventScroll:true});}}
-function paintFrames(){{const d=LIVE[PR.cur];if(d&&d.amount)document.querySelectorAll("#plive .lv-amtcta").forEach(b=>b.classList.toggle("on",LF==="aed"||LF==="inr"));}document.querySelectorAll("#plive .lv-frame").forEach(f=>{const k=f.dataset.k;const v=LV[k]||"";f.classList.toggle("act",LF===k);f.classList.toggle("fill",!!v&&LF!==k);});document.querySelectorAll("#plive .lv-clear").forEach(b=>b.classList.toggle("show",!!(LV[b.dataset.k]||"")));}
+function ctaReady(){const d=LIVE[PR.cur];if(!d)return true;if(d.amount)return parseFloat(LV.aed)>0;if(d.fields&&d.fields.length)return d.fields.some(f=>(LV[f.k]||"").trim());return true;}
+function paintCta(){const d=LIVE[PR.cur];if(!d||d.otp)return;const ok=ctaReady();const kbUp=d.amount&&(LF==="aed"||LF==="inr");document.querySelectorAll("#plive .lv-dis").forEach(x=>x.style.display=(ok||kbUp)?"none":"flex");document.querySelectorAll("#plive .lv-amtcta").forEach(b=>b.classList.toggle("dis",!ok));}
+function paintFrames(){paintCta();{const d=LIVE[PR.cur];if(d&&d.amount)document.querySelectorAll("#plive .lv-amtcta").forEach(b=>b.classList.toggle("on",LF==="aed"||LF==="inr"));}document.querySelectorAll("#plive .lv-frame").forEach(f=>{const k=f.dataset.k;const v=LV[k]||"";f.classList.toggle("act",LF===k);f.classList.toggle("fill",!!v&&LF!==k);});document.querySelectorAll("#plive .lv-clear").forEach(b=>b.classList.toggle("show",!!(LV[b.dataset.k]||"")));}
 function renderLive(){renderLive0();addScroller();addSpin();}
 function renderLive0(){const live=$("#plive");if(!live)return;live.innerHTML="";LF=null;const d=LIVE[PR.cur];
  const st=$("#pstage");st.classList.toggle("islive",!!d);if(!d)return;
@@ -1070,7 +1076,7 @@ function renderLive0(){const live=$("#plive");if(!live)return;live.innerHTML="";
  if(d.otp){const xs=[17,73,129,185,241,297];if(LV.otpErr)st.querySelector("#pimg").src=img("30919");
   h+=`<div class="lv-otpnext" style="background-image:url('${COMP("img/otpnext.jpg")}')"></div>`+xs.map((x,i)=>`<div class="lv-otp" data-i="${i}" style="left:${x-0.5}px;top:218px;width:47px;height:55px"></div>`).join("")+`<input data-k="otp" inputmode="none" autocomplete="one-time-code" maxlength="6" value="${esc(LV.otp)}" class="lv-hidden" style="left:17px;top:219px;width:326px;height:54px">`;}
  if(d.search)h+=`<div id="lvlist" class="lv-list"></div>`;
- (d.btns||[]).forEach(([x,y,w,hh])=>{h+=`<button class="lv-btn" tabindex="-1" style="left:${x}px;top:${y}px;width:${w}px;height:${hh}px"></button>`;});
+ (d.btns||[]).forEach(([x,y,w,hh])=>{h+=`<button class="lv-btn" tabindex="-1" style="left:${x}px;top:${y}px;width:${w}px;height:${hh}px"></button>`;if(!d.otp&&(d.amount||(d.fields&&d.fields.length)))h+=`<div class="lv-dis" style="left:${x}px;top:${y}px;width:${w}px;height:${hh}px">${d.amount?"Send Now":"Next"}</div>`;});
  live.innerHTML=h;
  /* wire inputs */
  live.querySelectorAll("input").forEach(inp=>{const k=inp.dataset.k;const f=(d.fields||[]).find(f=>f.k===k)||{kb:k==="otp"?"otp":(k==="aed"||k==="inr")?"num":"qwerty"};
@@ -1082,7 +1088,8 @@ function renderLive0(){const live=$("#plive");if(!live)return;live.innerHTML="";
   inp.addEventListener("click",e=>e.stopPropagation());});
  live.querySelectorAll(".lv-otp").forEach(b=>b.addEventListener("click",e=>{e.stopPropagation();focusField("otp");}));
  live.querySelectorAll(".lv-clear").forEach(b=>b.addEventListener("click",e=>{e.stopPropagation();LV[b.dataset.k]="";const i=live.querySelector(`input[data-k="${b.dataset.k}"]`);i.value="";i.dispatchEvent(new Event("input"));focusField(b.dataset.k);}));
- live.querySelectorAll(".lv-amtcta").forEach(b=>{b.addEventListener("pointerdown",e=>{e.preventDefault();e.stopPropagation();});b.addEventListener("click",e=>{e.stopPropagation();const inp=document.querySelector("#plive input:focus");if(inp)inp.blur();LF=null;hideKb();d.submit&&d.submit();});});
+ live.querySelectorAll(".lv-dis").forEach(x=>x.addEventListener("click",e=>e.stopPropagation()));paintCta();
+ live.querySelectorAll(".lv-amtcta").forEach(b=>{b.addEventListener("pointerdown",e=>{e.preventDefault();e.stopPropagation();});b.addEventListener("click",e=>{e.stopPropagation();if(!ctaReady())return;const inp=document.querySelector("#plive input:focus");if(inp)inp.blur();LF=null;hideKb();d.submit&&d.submit();});});
  live.querySelectorAll(".lv-btn").forEach(b=>b.addEventListener("click",e=>{e.stopPropagation();const inp=document.querySelector("#plive input:focus");if(inp)inp.blur();hideKb();d.submit&&d.submit();}));
  live.addEventListener("click",e=>{if(e.target===live||e.target.classList.contains("lv-text")||e.target.classList.contains("lv-mask")){/* tap on screen background */ }});
  if(d.amount)paintAmt(d.amount);if(d.otp)paintOtp();if(d.search)paintList(d.search);
