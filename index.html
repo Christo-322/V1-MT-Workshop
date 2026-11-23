@@ -912,9 +912,16 @@ function newRun(j){if(typeof resetLV==="function")resetLV();const pj=PR&&PR.j;PR
 const node=()=>JOURNEYS[PR.j].nodes[PR.cur];
 function track(to){const L=PR.L,now=Date.now();L.screens[L.c]=(L.screens[L.c]||0)+(now-L.t);L.c=to;L.t=now;}
 function goP(to,whatif){if(!to)return;if(to==="ended")PR.prevJ=PR.j;if(PR.cur==="lv19"&&to==="lv05")LV.saved={name:"christo paul",acct:"2074010056248"};if(PR.cur==="lv19"&&to==="pw3")LV.wsaved={name:"ahmed ali",mob:"9855763453"};if(to==="lv17")LV.saved=null;if(to==="pw2")LV.wsaved=null;if(whatif)PR.L.whatifs.push(whatif);PR.hist.push(PR.cur);track(to);PR.cur=to;paintP();}
-function nextP(){const n=node();const LDn=LIVE[PR.cur];if(LDn&&LDn.submit&&!n.back){const fi=document.querySelector("#plive input:focus");if(fi)fi.blur();return LDn.submit();}if(n.back){let k=n.back;let to=PR.cur;while(k-->0&&PR.hist.length)to=PR.hist.pop();track(to);PR.cur=to;return paintP();}
+function autoFill(){const c=PR.cur,set=(k,v)=>{LV[k]=v;};
+ if(c==="lv17"){if(!LV.first.trim())set("first","Christo");if(!LV.last.trim())set("last","Paul");}
+ else if(c==="lv09"){const v=LV.ifsc.trim().toUpperCase();if(!IFSC_OK[v])set("ifsc","FDRL0000207");}
+ else if(c==="lv08"){if(LV.acct.replace(/\D/g,"").length<11)set("acct","20740100562481");}
+ else if(c==="lv05"||c==="pw3"){const a=parseFloat(LV.aed);if(!a||a<MINAED||a>BAL)set("aed","30");}
+ else if(c==="pw2"){if(LV.wname.trim().split(/\s+/).filter(Boolean).length<2)set("wname","Ahmed Ali");if(!/^\d{10}$/.test(LV.wmob))set("wmob","3001234567");}
+ else if(c==="27906"){if(LV.otp!=="123456"){set("otp","123456");LV.otpErr=false;}}}
+function nextP(){const n=node();const LDn=LIVE[PR.cur];if(LDn&&LDn.submit&&!n.back){const fi=document.querySelector("#plive input:focus");if(fi)fi.blur();autoFill();return LDn.submit();}if(n.back){let k=n.back;let to=PR.cur;while(k-->0&&PR.hist.length)to=PR.hist.pop();track(to);PR.cur=to;return paintP();}
  if(n.end){finishRun();return toast("End of the journey. Try a 'What if…' or start over");}goP(n.next);}
-function backP(){if(!PR.hist.length)return;const to=PR.hist.pop();track(to);PR.cur=to;paintP();}
+function backP(){if(!PR.hist.length){if(PR.j!=="select"){newRun("select");paintP();}return;}const to=PR.hist.pop();track(to);PR.cur=to;paintP();}
 function fmtMs(ms){const s=Math.round(ms/1000);return s>=60?`${Math.floor(s/60)}m ${s%60}s`:`${s}s`;}
 function runSummary(){track(PR.cur);const L=PR.L;const slow=Object.entries(L.screens).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([k,ms])=>`${CAP[k]||k} ${fmtMs(ms)}`).join(", ");
  return `${JOURNEYS[PR.j].label} · ${fmtMs(Date.now()-L.start)} · longest on: ${slow||"-"} · what-ifs tried: ${L.whatifs.length?L.whatifs.join("; "):"none"}`;}
@@ -1153,7 +1160,7 @@ R.play=()=>{
  $("#pswitch").onclick=()=>{newRun("select");paintP();};
  $("#pscr").onclick=e=>{if(CUSTOM[PR.cur])return;const r=e.currentTarget.getBoundingClientRect();const x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height;if(x<0.22&&y<0.13&&PR.hist.length)return backP();if(x>0.78&&y<0.15&&helpP())return;
  if(LIVE[PR.cur]){const sr=$("#pstage").getBoundingClientRect(),yi=(e.clientY-sr.top)/(sr.width/360);if(liveBaseTap(yi))return;const fi=document.querySelector("#plive input:focus");if(!LIVE[PR.cur].baked&&(fi||LF)){if(fi)fi.blur();LF=null;hideKb();paintFrames();}return;}
- const z=(node().zones||[]).find(q=>y>=q[0]&&y<=q[1]);if(z)return goP(z[2],z[2]==="sb1"?"Tapped Select your bank":"");nextP();};$("#pnext").onclick=nextP;$("#pback").onclick=backP;
+ const z=(node().zones||[]).find(q=>y>=q[0]&&y<=q[1]);if(z)return goP(z[2],z[2]==="sb1"?"Tapped Select your bank":"");nextP();};$("#pnext").onclick=()=>{if(PR.cur==="28384"){const b=document.querySelector("#plive .sp-btn"),c=document.querySelector("#plive .spinwrap.won .sp-close");if(c)return c.click();if(b)return b.click();}nextP();};$("#pback").onclick=backP;
  $("#prs").onclick=()=>{newRun(PR.j);paintP();};
  fitPhone();paintP();setTimeout(fitPhone,50);
 };
