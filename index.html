@@ -591,6 +591,15 @@ body.hasnext .counter{bottom:96px}
 .otpcur{display:inline-block;width:1.5px;height:20px;background:#2b769c;animation:blink 1s steps(1) infinite}
 @keyframes blink{50%{opacity:0}}
 .lv-otpnext{position:absolute;left:0;top:510px;width:360px;height:56px;background-size:360px 56px;display:none;pointer-events:none}
+
+/* stronger floating Next CTA */
+.nextfix .nf-go{display:flex;align-items:center;gap:10px;background:var(--navy);color:#fff;padding:14px 22px 14px 24px;border-radius:999px;font-size:16px;box-shadow:0 0 0 4px #fff,0 14px 34px rgba(0,52,78,.45);animation:nfpulse 2.6s ease-in-out infinite}
+.nextfix .nf-go span{font-weight:400;opacity:.8}.nextfix .nf-go b{font-weight:700}
+.nextfix .nf-go i{font-style:normal;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#fff;color:var(--navy);font-weight:700}
+.nextfix .nf-go:hover{background:#004a6e;animation:none}
+@keyframes nfpulse{0%,100%{box-shadow:0 0 0 4px #fff,0 14px 34px rgba(0,52,78,.45)}50%{box-shadow:0 0 0 4px #fff,0 0 0 10px rgba(43,118,156,.25),0 14px 34px rgba(0,52,78,.45)}}
+body.hasnext .counter{display:none!important}
+@media(max-width:700px){.nextfix .nf-go{padding:12px 16px 12px 18px;font-size:15px}}
 </style>
 </head>
 <body>
@@ -692,7 +701,7 @@ const FLOW={play:["inspire","✨ Inspire","See how other apps solve it."],data:[
 function paintNav(){if(!S.seen)S.seen=[];document.querySelectorAll("nav a .nn").forEach(n=>{const v=n.parentElement.dataset.v;const done=S.seen.includes(v);n.textContent=done?"✓":String(VIEWS.indexOf(v));n.classList.toggle("done",done);});}
 function flowBar(v){const bar=$("#nextfix");if(v==="host"){bar.style.display="none";document.body.classList.remove("hasnext");return;}const n=VIEWS.indexOf(v),T=VIEWS.length-1;document.body.classList.toggle("hasnext",v!=="start");
  if(v==="start"){bar.style.display="none";return;}bar.style.display="";
- if(FLOW[v]){const [to,lab,why]=FLOW[v];const un=(v==="critique"&&live())?unsent().length:0;bar.innerHTML=`<div class="nf-in"><div class="nf-t"><span class="small">${un?`<b style="color:var(--errtx)">${un} note${un>1?"s":""} not sent yet</b>`:`Room ${n} of ${T}`}</span></div><a class="btn p" href="#${to}">Next: ${lab} ▶</a></div>`;}
+ if(FLOW[v]){const [to,lab,why]=FLOW[v];const un=(v==="critique"&&live())?unsent().length:0;bar.innerHTML=`<div class="nf-in"><div class="nf-t">${un?`<span class="small"><b style="color:var(--errtx)">${un} note${un>1?"s":""} not sent yet</b></span>`:""}</div><a class="btn p nf-go" href="#${to}"><span>Next</span><b>${lab}</b><i>→</i></a></div>`;}
  else bar.innerHTML=`<div class="nf-in"><div class="nf-t"><b>🎉 Done! Post your card in ${esc(CONFIG.chat)}</b></div><a class="btn s" href="#make">✏️ Design another</a></div>`;}
 function route(){let v=(location.hash||"#start").slice(1);if(v==="gallery")v="critique";if(v==="data"){v="play";history.replaceState(null,"","#play");}if((v!=="host"||SA)&&!VIEWS.includes(v))v="start";
  [...VIEWS,"host"].forEach(x=>$("#v-"+x).classList.toggle("on",x===v));document.querySelectorAll("nav a").forEach(a=>a.classList.toggle("on",a.dataset.v===v));
