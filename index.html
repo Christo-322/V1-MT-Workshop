@@ -707,6 +707,24 @@ h2{font-size:18px!important;line-height:23px!important;margin:20px 0 6px!importa
 .isadd:hover{background:#e6efff!important}
 .isadd-p{width:20px;height:20px;border-radius:50%;background:#2d6cdf;color:#fff;display:grid;place-items:center;font-size:15px;line-height:1}
 main{padding-bottom:110px!important}
+
+.hmw{padding:0 0 16px!important;overflow:hidden}
+.hmw>*:not(.hmw-vis):not(.vm-like){margin-left:16px;margin-right:16px}
+.hmw .vm-like{z-index:3}
+.hmw-vis{height:190px;position:relative;display:flex;justify-content:center;align-items:center;gap:0;padding:14px 10px;overflow:hidden}
+.hmw-shot{position:relative;border:0;padding:0;background:#fff;border-radius:12px;box-shadow:0 10px 24px rgba(16,40,80,.18);width:46%;max-height:150px;overflow:hidden;cursor:zoom-in;transition:transform .25s}
+.hmw-shot img{display:block;width:100%;height:150px;object-fit:cover;object-position:top}
+.hmw-shot.s0{transform:rotate(-4deg) translateX(8px);z-index:1}.hmw-shot.s1{transform:rotate(4deg) translate(-8px,10px);z-index:2}
+.hmw:hover .hmw-shot.s0{transform:rotate(-2deg) translateX(-2px) scale(1.03)}.hmw:hover .hmw-shot.s1{transform:rotate(2deg) translate(2px,6px) scale(1.03)}
+.hmw-shot span{position:absolute;left:6px;bottom:6px;background:rgba(15,30,60,.82);color:#fff;font-size:10.5px;padding:2px 7px;border-radius:999px}
+.hmw-iss{margin-top:2px}
+.hmw-zoom{position:fixed;inset:0;background:rgba(10,20,40,.7);z-index:9999;display:grid;place-items:center;cursor:zoom-out;padding:20px}
+.hmw-zoom figure{margin:0;max-width:min(520px,92vw);text-align:center}.hmw-zoom img{max-width:100%;max-height:78vh;border-radius:14px;background:#fff}
+.hmw-zoom figcaption{color:#fff;font-size:13px;margin-top:8px}
+.hmw-vis{gap:10px!important}
+.hmw-shot{width:47%!important}.hmw-shot img{object-fit:contain!important;object-position:center!important;background:#fff}
+.hmw-shot.s0{transform:rotate(-3deg)!important}.hmw-shot.s1{transform:rotate(3deg) translateY(8px)!important}
+.hmw:hover .hmw-shot.s0{transform:rotate(-1deg) scale(1.04)!important}.hmw:hover .hmw-shot.s1{transform:rotate(1deg) translateY(4px) scale(1.04)!important}
 </style>
 </head>
 <body>
@@ -1588,6 +1606,8 @@ function newPerson(){const keep={resetSeen:S.resetSeen,resetPending:S.resetPendi
  ["flags","sent","votes","hidden","likes","card","pick","fix","idea","ideas","pulse","cons","upl","mark","build","seen","teamRaw","ltab","critErr","uid"].forEach(x=>delete S[x]);
  S.flags={};S.cons=[];Object.assign(S,keep);S.uid=Math.random().toString(36).slice(2,8);}
 
+const HMW_V={"receiver": [["asp-09", "Aspora"], ["bot-7", "Botim"]], "ifsc": [["asp-06", "Aspora"], ["bot-9", "Botim"]], "deadend": [["ttp-5", "Taptap Send"], ["ttp-4", "Taptap Send"]], "typos": [["asp-10", "Aspora"], ["mob-10", "Google Pay"]], "fear": [["asp-02", "Aspora"], ["mob-14", "Wise"]], "errors": [["mob-3", "N26"], ["mob-7", "Careem"]], "price": [["bot-3", "Botim"], ["mob-2", "Monzo"]], "trust": [["asp-04", "Aspora"], ["mob-16", "Shopee"]]};
+const HMW_BG=["#e8f0ff","#e9f7f1","#fff4e5","#f1ecff","#e6f6fb","#fdecef","#eef5e6","#fff0f6"];
 const HMW=[
  ["receiver","🧾","Only 57% finish adding a receiver","make adding a receiver feel quick and easy?",["Progress bar, fewer steps","Add from photo, text or voice"]],
  ["ifsc","🏦","Most people don't know their IFSC","help people pick the right bank without an IFSC?",["Choose bank by logo","Read it from a passbook photo"]],
@@ -1880,7 +1900,7 @@ R.inspire=()=>{
  ${CONFIG.FUNNEL?`<div class="dslot" style="margin-top:14px"><button class="dimg" data-zoom="${esc(CONFIG.FUNNEL)}" data-cap="Money transfer funnel"><img src="${esc(CONFIG.FUNNEL)}" alt="Funnel"></button></div>`:""}
  <div class="itabs" role="tablist">${TABS.map(([k,n])=>`<button role="tab" data-t="${k}">${n}</button>`).join("")}</div>
  ${TABS.map(([k])=>`<div class="ipane" id="${k}"></div>`).join("")}
- <h2 style="margin-top:34px">How might we…</h2><p class="muted" style="margin-top:0">Our known problems, turned into questions for Make. Tap 🤍 on the ones you want to solve.</p>
+ <h2 style="margin-top:34px">How might we…</h2><p class="muted" style="margin-top:0">Our known problems, and who already solves them. Tap a screen to zoom, 🤍 the ones you want to solve.</p>
  <div class="chips mfil" id="mfil"></div><div class="mood" id="mood"></div>`;
  wireZoom($("#v-inspire"));
  viewer($("#asp"),ASPORA.map(([n,c,p],k)=>({src:COMP(IMGA(`img/comp/aspora-${n}.jpg`)),app:"Aspora",cap:c,good:CRIT_ASP[k][0].slice(0,1),bad:CRIT_ASP[k][1].slice(0,1)})),{strip:true});
@@ -1897,9 +1917,11 @@ R.inspire=()=>{
   if(S.moodF==="top")arr=arr.filter(m=>(L[m.k]||0)>0).sort((a,b)=>(L[b.k]||0)-(L[a.k]||0));
   $("#mood").innerHTML=arr.length?`<div class="hmwgrid">${arr.map((m,i)=>`<article class="hmw">
    <button class="vm-like${mine.has(m.k)?" on":""}" data-l="${m.k}" aria-label="Like">${mine.has(m.k)?"❤️":"🤍"}<b>${L[m.k]||""}</b></button>
+   <div class="hmw-vis" style="background:${HMW_BG[i%8]}">${(HMW_V[m.k.slice(4)]||[]).map(([f,a],j)=>`<button class="hmw-shot s${j}" data-z="${COMP("img/mood/"+f+".jpg")}" data-a="${esc(a)}" aria-label="Zoom ${esc(a)}"><img src="${COMP("img/mood/"+f+".jpg")}" alt="" loading="lazy"><span>${esc(a)}</span></button>`).join("")}</div>
    <div class="hmw-iss"><span class="hmw-ic">${m.ic}</span>${esc(m.iss)}</div>
    <p class="hmw-q"><span>How might we</span> ${esc(m.q)}</p>
    <div class="hmw-ids">${m.ids.map(t=>`<span class="hmw-id">💡 ${esc(t)}</span>`).join("")}</div></article>`).join("")}</div>`:`<div class="notice">No likes yet. Tap 🤍 on a question.</div>`;
+  $("#mood").querySelectorAll("[data-z]").forEach(b=>b.onclick=()=>{const o=document.createElement("div");o.className="hmw-zoom";o.innerHTML=`<figure><img src="${b.dataset.z}" alt=""><figcaption>Seen in ${b.dataset.a} · tap to close</figcaption></figure>`;o.onclick=()=>o.remove();document.body.appendChild(o);});
   $("#mood").querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{const k=b.dataset.l;if(!S.likes)S.likes=[];const on=S.likes.includes(k);
    S.likes=on?S.likes.filter(x=>x!==k):[...S.likes,k];save();if(SA)bgSend(Object.assign(who(),{idea:(on?"UNLIKE:":"LIKE:")+k})).catch(()=>{});paintMood();});};
  document.querySelectorAll("#mfil .chip").forEach(b=>b.onclick=()=>{S.moodF=b.dataset.f;save();paintMood();});
