@@ -910,7 +910,7 @@ const LIVE={
    {k:"wname",r:[17,242,326,43],kb:"qwerty",ph:"",max:40,filled:true},
    {k:"wmob",r:[17,325,326,43],kb:"dial",ph:"XXXXXXXXXX",max:10,digits:true,prefix:80,filled:true}],
   btns:[[16,456,328,44]],
-  submit(){if(LV.wname.trim().split(/\s+/).filter(Boolean).length<2)return sheet("wfull");if(!/^3\d{9}$/.test(LV.wmob))return sheet("wmob");LV.wsaved=null;liveNext();}},
+  submit(){if(LV.wname.trim().split(/\s+/).filter(Boolean).length<2)return sheet("wfull");if(!/^\d{10}$/.test(LV.wmob))return sheet("wmob");LV.wsaved=null;liveNext();}},
  sb1:{base:"sb1",search:"bank",fields:[{k:"bq",r:[17,172,326,43],kb:"qwerty",ph:"Search",max:40,search:true}]},
  sb4:{base:"sb4",search:"branch",fields:[{k:"brq",r:[17,172,326,43],kb:"qwerty",ph:"Search",max:40,search:true}]},
  "27906":{base:"27906",otp:true,baked:"otp",btns:[[16,516,328,42]],
