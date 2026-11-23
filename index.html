@@ -1206,7 +1206,7 @@ R.play=()=>{
  </div>`;
  if(!PR)newRun("select");
  $("#pswitch").onclick=()=>{newRun("select");paintP();};
- $("#pscr").onclick=e=>{if(CUSTOM[PR.cur])return;const r=e.currentTarget.getBoundingClientRect();const x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height;if(x<0.22&&y<0.13&&PR.hist.length)return backP();if(x>0.78&&y<0.15&&helpP())return;
+ $("#pscr").onclick=e=>{if(CUSTOM[PR.cur])return;const r=e.currentTarget.getBoundingClientRect();const x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height;if(x<0.22&&y<0.13&&PR.hist.length)return backP();if(PR.cur==="lv19"&&x>0.5&&y>0.325&&y<0.38)return goP("32312","Tapped Transfer Status");if(x>0.78&&y<0.15&&helpP())return;
  if(LIVE[PR.cur]){const sr=$("#pstage").getBoundingClientRect(),yi=(e.clientY-sr.top)/(sr.width/360);if(liveBaseTap(yi))return;const fi=document.querySelector("#plive input:focus");if(!LIVE[PR.cur].baked&&(fi||LF)){if(fi)fi.blur();LF=null;hideKb();paintFrames();}return;}
  const z=(node().zones||[]).find(q=>y>=q[0]&&y<=q[1]);if(z)return goP(z[2],z[2]==="sb1"?"Tapped Select your bank":"");nextP();};$("#pnext").onclick=()=>{if(PR.cur==="28384"){const b=document.querySelector("#plive .sp-btn"),c=document.querySelector("#plive .spinwrap.won .sp-close");if(c)return c.click();if(b)return b.click();}nextP();};$("#pback").onclick=backP;
  $("#prs").onclick=()=>{newRun(PR.j);paintP();};
@@ -1361,9 +1361,11 @@ const MW=280,MH=607;const bgImgs={};
 function loadImg(src){if(!src)return null;if(!bgImgs[src]){const i=new Image();i.src=src;bgImgs[src]=i;}return bgImgs[src];}
 function setupHiDPI(cv,w,h,k){k=k||2;cv.width=w*k;cv.height=h*k;cv.style.width=w+"px";cv.style.height=h+"px";const c=cv.getContext("2d");c.setTransform(k,0,0,k,0,0);return c;}
 const FIXJ={
- india:{n:"🇮🇳 India bank transfer",s:[["dash","Dashboard"],["lv19","Money Transfer home (repeat users)"],["lv18","Choose how to send"],["lv17","Receiver name"],["lv16","Error: enter full name",1],["lv15","Choose one option"],["sb1","Select bank"],["sb3","Bank search: nothing found",1],["sb4","Select branch"],["sb6","Branch search: nothing found",1],["lv09","Enter IFSC code"],["lv12","Error: IFSC too short",1],["lv10","Error: wrong IFSC",1],["lv08","Enter account number"],["lv07","Error: account number too short",1],["lv05","Enter amount"],["lv04","Error: under 25 AED",1],["lv02","Error: fee doesn't fit",1],["30812","Error: monthly limit",1],["lv01","Summary"],["31385","Purpose of transfer"],["31614","Error: unsupported purpose",1],["27906","Enter OTP"],["30919","Error: wrong OTP",1],["30980","Error: time out",1],["31016","Error: receiver creation",1],["27898","Transfer is on the way"],["28203","Transfer failed",1],["32312","Transfer status"],["32339","Status: failed",1]]},
- wallet:{n:"🇵🇰 Pakistan Easy Paisa wallet",s:[["dash","Dashboard"],["lv19","Money Transfer home"],["pw1","Transfer Method"],["pw2","Who are you sending to?"],["pwe2","Error: enter full details",1],["pwe1","Error: wrong mobile number",1],["27297","Error: name must match wallet",1],["27301","Error: fewer than 3 letters",1],["27305","Error: name too long",1],["pw3","Enter amount (PKR)"],["30758","Error: under 25 AED",1],["30652","Error: balance is low",1],["30812","Error: monthly limit",1],["pw4","Summary"],["31385","Purpose of transfer"],["27906","Enter OTP"],["30919","Error: wrong OTP",1],["30980","Error: time out",1],["27898","Transfer is on the way"],["28203","Transfer failed",1],["32312","Transfer status"]]}
+ india:{n:"🇮🇳 India bank transfer",s:[["dash","Dashboard"],["lv19","Money Transfer home (repeat users)"],["lv18","Choose how to send"],["lv17","Receiver name"],["lv16","Error: enter full name",1],["lv15","Choose one option"],["sb1","Select bank"],["sb3","Bank search: nothing found",1],["sb4","Select branch"],["sb6","Branch search: nothing found",1],["lv09","Enter IFSC code"],["lv12","Error: IFSC too short",1],["lv10","Error: wrong IFSC",1],["lv08","Enter account number"],["lv07","Error: account number too short",1],["lv05","Enter amount"],["lv04","Error: under 25 AED",1],["lv02","Error: fee doesn't fit",1],["30812","Error: monthly limit",1],["lv01","Summary"],["31385","Purpose of transfer"],["31614","Error: unsupported purpose",1],["27906","Enter OTP"],["30919","Error: wrong OTP",1],["30980","Error: time out",1],["31016","Error: receiver creation",1]]},
+ wallet:{n:"🇵🇰 Pakistan Easy Paisa wallet",s:[["dash","Dashboard"],["lv19","Money Transfer home"],["pw1","Transfer Method"],["pw2","Who are you sending to?"],["pwe2","Error: enter full details",1],["pwe1","Error: wrong mobile number",1],["27297","Error: name must match wallet",1],["27301","Error: fewer than 3 letters",1],["27305","Error: name too long",1],["pw3","Enter amount (PKR)"],["30758","Error: under 25 AED",1],["30652","Error: balance is low",1],["30812","Error: monthly limit",1],["pw4","Summary"],["31385","Purpose of transfer"],["27906","Enter OTP"],["30919","Error: wrong OTP",1],["30980","Error: time out",1]]},
+ after:{n:"📬 After the transfer (all flows)",s:[["27898","Transfer is on the way"],["28203","Transfer failed",1],["28384","Spin the wheel"],["29486","You won AED 50"],["27916","Feedback"],["27957","Thanks for feedback"],["28004","Invite friends"],["32312","Transfer history"],["32334","Transfer status detail"],["32339","Status: failed",1]]}
 };
+const jOf=id=>["india","wallet","after"].find(k=>FIXJ[k].s.some(x=>x[0]===id))||"india";
 Object.values(FIXJ).forEach(j=>j.s.forEach(([i,c])=>{if(!CAP[i])CAP[i]=c;}));
 let selB=null;
 R.make=()=>{
@@ -1403,7 +1405,7 @@ R.make=()=>{
   <label class="fl" for="ulink">Link to a prototype (optional)</label><input type="text" id="ulink" placeholder="https://…" value="${esc((S.card||{}).link||"")}"></div></div></div>
 `;
  // pick screen
- if(!S.fixJ||!FIXJ[S.fixJ])S.fixJ=(S.fix&&FIXJ.wallet.s.some(x=>x[0]===S.fix)&&!FIXJ.india.s.some(x=>x[0]===S.fix))?"wallet":(PR&&jBase(PR.j))||"india";
+ if(!S.fixJ||!FIXJ[S.fixJ])S.fixJ=(S.fix&&S.fix)?jOf(S.fix):(PR&&jBase(PR.j))||"india";
  const paintGrid=()=>{document.querySelectorAll("#fj .chip").forEach(b=>b.setAttribute("aria-pressed",b.dataset.j===S.fixJ));
   const g=$("#fgrid");g.innerHTML=FIXJ[S.fixJ].s.map(([i,c,e],k)=>`<button class="fp${e?" err":""}" data-id="${i}" aria-pressed="${S.fix===i}"><img src="${img(i)}" alt="" loading="lazy"><span><b>${k+1}.</b> ${esc(c)}${S.flags[i]?" 🚩":""}</span></button>`).join("");
   g.querySelectorAll(".fp").forEach(b=>b.onclick=()=>setFix(b.dataset.id));};
@@ -1418,7 +1420,7 @@ R.make=()=>{
   const body=S.ltab===1?col("",`${LIVE_AT?`Live · ${esc(LIVE_AT)}`:CONFIG.TEAM_AT?`Updated ${esc(CONFIG.TEAM_AT)}`:""}`,l1,`No critiques yet. <a href="#critique">Write some in Critique</a>.`):S.ltab===2?col("","",l2,""):col("","",l3,"");
   $("#lists").innerHTML=`<div class="itabs ltabs">${LT.map(([n,c],k)=>`<button data-lt="${k+1}" aria-selected="${S.ltab===k+1}">${n} <span class="cnt">${c}</span></button>`).join("")}</div>${body}`;
   document.querySelectorAll(".ltabs button").forEach(b=>b.onclick=()=>{S.ltab=+b.dataset.lt;save();paintLists();});
-  document.querySelectorAll("#lists .li").forEach(b=>b.onclick=()=>{const it=items()[+b.dataset.l-1][+b.dataset.i];S.pick={l:it.l,t:it.t};if(it.id){S.fix=it.id;S.fixJ=FIXJ.wallet.s.some(x=>x[0]===it.id)&&!FIXJ.india.s.some(x=>x[0]===it.id)?"wallet":"india";}S.card=Object.assign(S.card||{},{problem:"",fix:""});save();paintLists();paintGrid();paintCtx();buildPrompt();$("#fctx").scrollIntoView({behavior:"smooth",block:"nearest"});});};
+  document.querySelectorAll("#lists .li").forEach(b=>b.onclick=()=>{const it=items()[+b.dataset.l-1][+b.dataset.i];S.pick={l:it.l,t:it.t};if(it.id){S.fix=it.id;S.fixJ=jOf(it.id);}S.card=Object.assign(S.card||{},{problem:"",fix:""});save();paintLists();paintGrid();paintCtx();buildPrompt();$("#fctx").scrollIntoView({behavior:"smooth",block:"nearest"});});};
  $("#tpgo").onclick=()=>{const v=$("#tpin").value;if(!v.trim())return toast("Paste the critiques first");S.teamRaw=(S.teamRaw?S.teamRaw+"\n":"")+v;save();$("#tpin").value="";$("#tpd").open=false;paintLists();toast(`List 1 now has ${teamCrit().length} team critiques`);};
  $("#tpclr").onclick=()=>{S.teamRaw="";save();paintLists();};
  $("#ownb").onclick=()=>{const v=$("#ownin").value.trim();if(!v)return toast("Type your idea first");S.pick={l:0,t:v};S.card=Object.assign(S.card||{},{problem:"",fix:""});save();paintLists();paintCtx();buildPrompt();};
@@ -1539,7 +1541,7 @@ function topGroups(){
  return out.sort((a,b)=>b.score-a.score||b.said-a.said||a.scr.localeCompare(b.scr));}
 function topThemes(groups){const t=new Map();groups.filter(g=>!g.hidden).forEach(g=>g.m.forEach(m=>{const k=normT(m.note);if(k.split(" ").length>4)return;if(!t.has(k))t.set(k,{label:m.note,ppl:new Set(),scr:new Set()});const x=t.get(k);x.ppl.add(m.name.toLowerCase());x.scr.add(g.scr);}));
  return [...t.values()].filter(x=>x.ppl.size>=2&&x.scr.size>=2).sort((a,b)=>b.ppl.size-a.ppl.size).slice(0,6);}
-function pickGroup(g){S.pick={l:1,t:(g.scr?g.scr+": ":"")+g.head};if(g.sid){S.fix=g.sid;S.fixJ=FIXJ.wallet.s.some(x=>x[0]===g.sid)&&!FIXJ.india.s.some(x=>x[0]===g.sid)?"wallet":"india";}S.card=Object.assign(S.card||{},{problem:g.head,fix:""});save();}
+function pickGroup(g){S.pick={l:1,t:(g.scr?g.scr+": ":"")+g.head};if(g.sid){S.fix=g.sid;S.fixJ=jOf(g.sid);}S.card=Object.assign(S.card||{},{problem:g.head,fix:""});save();}
 function clearCrit(){S.myNames=[];S.likes=[];S.flags=Object.fromEntries(Object.entries(S.flags||{}).filter(([k])=>k.startsWith("play:")));S.sent={};S.votes=[];S.hidden=[];S.teamRaw="";if(S.pick&&S.pick.l===1)S.pick=null;save();}
 function nameTaken(k){return LIVE_ROWS.some(r=>(r.name||"").trim().toLowerCase()===k&&(r.crit||/^(JOIN|VOTE):/.test(r.idea)));}
 function newPerson(){const keep={resetSeen:S.resetSeen,resetPending:S.resetPending,host:S.host,insTab:S.insTab,dtog:S.dtog};
