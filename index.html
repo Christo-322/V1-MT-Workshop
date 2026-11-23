@@ -706,7 +706,7 @@ window.addEventListener("hashchange",route);
    Needs CONFIG.entries filled from the form's pre-filled link. */
 function autoUrl(vals){const e=CONFIG.entries;return CONFIG.formBase.split("?")[0].replace(/\/viewform$/,"/formResponse")+"?usp=pp_url&"+Object.keys(vals).filter(k=>e[k]&&vals[k]).map(k=>`entry.${e[k]}=${encodeURIComponent(vals[k])}`).join("&")+"&submit=Submit";}
 const live=()=>connected();
-const who=()=>({name:S.name.trim()||"(no name)",team:S.team||"(no team)"});
+const who=()=>({name:S.name.trim()||"(no name)",team:S.team||""});
 function unsent(){if(!S.sent)S.sent={};return Object.entries(S.flags).filter(([k,v])=>!k.startsWith("play:")&&S.sent[k]!==v);}
 const SA=!!window.STANDALONE;
 function bgSend(vals){const e=CONFIG.entries,b=new URLSearchParams();Object.keys(vals).forEach(k=>{if(e[k]&&vals[k])b.append("entry."+e[k],vals[k]);});
@@ -740,15 +740,14 @@ const R={};
 R.start=()=>{
  $("#v-start").innerHTML=`<h1>Try it. Critique it. <span style="color:var(--red)">Make it better.</span></h1>
  <p class="lead">Our money transfer flow, for you to break and fix.</p>
- <div class="card"><div class="grid g2"><div><label class="fl" for="nm">Your name</label><input type="text" id="nm" value="${esc(S.name)}" placeholder="e.g. Rufina"></div>
- <div><span class="fl">Your team</span><div class="chips" id="teams"></div></div></div>
+ <div class="card"><div style="max-width:420px"><label class="fl" for="nm">Your name</label><input type="text" id="nm" value="${esc(S.name)}" placeholder="e.g. Rufina"></div>
  <div class="go" style="margin-top:14px"><button class="btn r" id="go" style="padding:12px 24px;font-size:16px">Start ▶</button><span class="nmerr" id="nmerr" role="alert"></span></div></div>
  <div class="rooms6">${[["#play","▶","Experience","Use the real app"],["#inspire","✨","Inspire","Others do it better"],["#critique","🚩","Critique","What's wrong"],["#top","🏆","Top critiques","What most said"],["#make","✏️","Make","Design a fix"],["#share","📣","Pitch","Share your idea"]].map((r,i)=>`<a class="r6" href="${r[0]}"><em>${r[1]}</em><b>${i+1}. ${r[2]}</b><span>${r[3]}</span></a>`).join("")}</div>
  <div class="rules">${["💡 Wild ideas welcome","🛠️ Any tool counts","👷 Design for our users","🤝 Critique ideas, not people"].map(x=>`<span>${x}</span>`).join("")}</div>
  <p class="small muted" style="margin-top:10px">Saved on this device as you go.</p>`;
  $("#nm").oninput=()=>{const e=$("#nmerr");if(e)e.textContent="";};
  $("#go").onclick=async()=>{const nm=$("#nm").value.trim().replace(/\s+/g," "),err=$("#nmerr");
-  if(!nm){err.textContent="Add your name first";$("#nm").focus();return;}if(!S.team){err.textContent="Pick your team first";return;}
+  if(!nm){err.textContent="Add your name first";$("#nm").focus();return;}
   const go=$("#go");go.disabled=true;go.textContent="Checking…";if(SA&&CONFIG.SHEET_CSV)await loadLive();go.disabled=false;go.textContent="Start ▶";
   const k=nm.toLowerCase();if(!S.myNames)S.myNames=[];
   if(!S.lastName&&(S.name||"").trim().toLowerCase()===k)S.myNames.push(k);
@@ -757,7 +756,7 @@ R.start=()=>{
   S.name=nm;S.lastName=k;if(!S.myNames.includes(k))S.myNames.push(k);if(!S.uid)S.uid=Math.random().toString(36).slice(2,8);save();
   if(SA)bgSend({name:nm,team:S.team,idea:"JOIN:"+S.uid}).catch(()=>{});
   try{paintNav();}catch(e){}location.hash="#play";};
- const t=$("#teams");["VAS","CS","Tech","Data","Product","Design","Leadership","Other"].forEach(x=>{const b=document.createElement("button");b.className="chip";b.textContent=x;b.setAttribute("aria-pressed",S.team===x);b.onclick=()=>{S.team=x;save();[...t.children].forEach(c=>c.setAttribute("aria-pressed",c===b));};t.appendChild(b);});
+
 };
 
 /* ================= PLAY: click-through of the real screens ================= */
