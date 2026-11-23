@@ -977,7 +977,7 @@ const LIVE={
   btns:[[16,430,328,44]],
   submit(){if(!LV.first.trim()||!LV.last.trim())return sheet("name");LV.saved=null;liveNext();}},
  lv09:{base:"lv13",auto:"ifsc",fields:[{k:"ifsc",r:[17,194,326,43],kb:"qwerty",ph:"",max:11}],btns:[[16,430,328,44]],
-  submit(){const v=LV.ifsc.trim().toUpperCase();if(v.length<11)return sheet("ifsc11");if(!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(v)||!IFSC_BANK[v.slice(0,4)])return sheet("ifscBad");LV.bank=IFSC_BANK[v.slice(0,4)];LV.branch=IFSC_OK[v]||("IFSC "+v);liveNext();}},
+  submit(){const v=LV.ifsc.trim().toUpperCase();if(v.length<11)return sheet("ifsc11");if(!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(v)||!IFSC_BANK[v.slice(0,4)])return sheet("ifscBad");LV.bank=IFSC_BANK[v.slice(0,4)];LV.branch=IFSC_OK[v]||ifscPlace(v);LV.ifscLooked=v;if(!IFSC_OK[v])lookupIfsc(v);liveNext();}},
  lv08:{base:"lv08",auto:"acct",fields:[{k:"acct",r:[17,258,326,43],kb:"num",ph:"",max:18,digits:true}],btns:[[16,456,328,44]],
   extra:()=>[{html:bankBlock()}],
   submit(){const v=LV.acct.replace(/\D/g,"");if(v.length<11)return sheet("acct11");LV.saved=null;liveNext();}},
@@ -1020,6 +1020,9 @@ const IFSC_BANK=Object.fromEntries(IN_BANKS.map(([n,c])=>[c,n]));
 const POP_BANKS=[["State Bank Of India", 45], ["Punjab National Bank", 115], ["Canara Bank", 185], ["Union Bank Of India", 255], ["Federal Bank", 326], ["Bank Of Baroda", 397], ["Indian Bank", 467], ["HDFC Bank", 538], ["Bank Of India", 609]];
 const bankRow=(n,logoY)=>`<div class="bk-row tap" data-bank="${esc(n)}"><span class="bk-ic"${logoY!=null?` style="background:url('${COMP("img/scroll/banks.jpg")}') -16px -${logoY+11}px/360px auto"`:""}>${logoY!=null?"":`<img src="${COMP("img/bankicon.png")}" alt="">`}</span><span class="bk-n">${esc(n)}</span><svg class="bk-ch" viewBox="0 0 24 24" width="22" height="22"><path d="M9 5l7 7-7 7" fill="none" stroke="#0b3a53" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
 function bankIcon(n,size){const pp=POP_BANKS.find(x=>x[0].toLowerCase()===String(n).toLowerCase());return pp?`<span class="bk-ic" style="background:url('${COMP("img/scroll/banks.jpg")}') -16px -${pp[1]+11}px/360px auto"></span>`:`<span class="bk-ic"><img src="${COMP("img/bankicon.png")}" alt=""></span>`;}
+const PLACES=["MG ROAD","CHALAKUDY","THRISSUR MAIN","KOCHI MARINE DRIVE","CONNAUGHT PLACE","ANDHERI WEST","T NAGAR","KORAMANGALA","BANJARA HILLS","SALT LAKE","HAZRATGANJ","CIVIL LINES","ASHRAM ROAD","PALAYAM","KOZHIKODE","SECUNDERABAD","GANDHI NAGAR","FORT KOCHI","ERNAKULAM SOUTH","AMRITSAR CITY","LUDHIANA","JALANDHAR","PATNA MAIN","VARANASI","LUCKNOW CANTT","JAIPUR MI ROAD","INDORE","NAGPUR","PUNE CAMP","VIJAYAWADA","MADURAI","COIMBATORE RS PURAM","MANGALORE","KANNUR","KOLLAM","PALAKKAD","TIRUR","MALAPPURAM","KOTTAYAM","ALAPPUZHA"];
+function ifscPlace(v){let h=0;for(const c of v.slice(5))h=(h*31+c.charCodeAt(0))>>>0;return PLACES[h%PLACES.length];}
+function lookupIfsc(v){try{fetch("https://ifsc.razorpay.com/"+v).then(r=>r.ok?r.json():null).then(j=>{if(!j||LV.ifscLooked!==v)return;const place=(j.BRANCH||j.CITY||"").toUpperCase();if(place)LV.branch=place;if(j.BANK&&!IFSC_BANK[v.slice(0,4)])LV.bank=j.BANK;const el=document.querySelector("#plive .lv-bankblk span");if(el&&place)el.textContent=place;}).catch(()=>{});}catch(e){}}
 function bankBlock(){const n=LV.bank||"Federal Bank",br=LV.branch||"MELOOR";return `<div class="lv-bankblk">${bankIcon(n)}<div><b>${esc(n.toUpperCase())}</b><span>${esc(br)}</span></div></div>`;}
 function pickBank(n){LV.bank=n;goP("sb4","Picked "+n);}
 let LF=null; /* focused field key */
