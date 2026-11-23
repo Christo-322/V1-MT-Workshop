@@ -705,7 +705,8 @@ function flowBar(v){const bar=$("#nextfix");if(v==="host"){bar.style.display="no
  if(v==="start"){bar.style.display="none";return;}bar.style.display="";
  if(FLOW[v]){const [to,lab,why]=FLOW[v];const un=(v==="critique"&&live())?unsent().length:0;bar.innerHTML=`<div class="nf-in"><div class="nf-t">${un?`<span class="small"><b style="color:var(--errtx)">${un} note${un>1?"s":""} not sent yet</b></span>`:""}</div><a class="btn p nf-go" href="#${to}"><span>Next</span><b>${lab}</b><i>→</i></a></div>`;}
  else bar.innerHTML=`<div class="nf-in"><div class="nf-t"><b>🎉 Done! Post your card in ${esc(CONFIG.chat)}</b></div><a class="btn s" href="#make">✏️ Design another</a></div>`;}
-function route(){let v=(location.hash||"#start").slice(1);if(v==="gallery")v="critique";if(v==="data"){v="play";history.replaceState(null,"","#play");}if((v!=="host"||SA)&&!VIEWS.includes(v))v="start";document.body.classList.toggle("noname",!(S.name||"").trim());if(v!=="start"&&v!=="host"&&!(S.name||"").trim()){if(location.hash&&location.hash!=="#start"){history.replaceState(null,"","#start");setTimeout(()=>{const e=$("#nmerr");if(e)e.textContent="Add your name to start";const n=$("#nm");if(n)n.focus();},50);}v="start";}
+function started(){try{return sessionStorage.getItem("mt_started")==="1";}catch(e){return !!(S.name||"").trim();}}
+function route(){let v=(location.hash||"#start").slice(1);if(v==="gallery")v="critique";if(v==="data"){v="play";history.replaceState(null,"","#play");}if((v!=="host"||SA)&&!VIEWS.includes(v))v="start";const named=!!(S.name||"").trim()&&started();document.body.classList.toggle("noname",!named);if(v!=="start"&&v!=="host"&&!named){if(location.hash&&location.hash!=="#start"){history.replaceState(null,"","#start");setTimeout(()=>{const e=$("#nmerr");if(e)e.textContent="Add your name to start";const n=$("#nm");if(n)n.focus();},50);}v="start";}
  [...VIEWS,"host"].forEach(x=>$("#v-"+x).classList.toggle("on",x===v));document.querySelectorAll("nav a").forEach(a=>a.classList.toggle("on",a.dataset.v===v));
  if(v==="share"||v==="make"||v==="critique"||v==="top"||v==="host"||!rendered[v]){R[v]();rendered[v]=1;}
  if(v==="play")setTimeout(fitPhone,0);
@@ -764,7 +765,7 @@ R.start=()=>{
   if(!S.lastName&&(S.name||"").trim().toLowerCase()===k)S.myNames.push(k);
   if(nameTaken(k)&&!S.myNames.includes(k)){err.innerHTML=`<b>${esc(nm)}</b> is already taken. Add your surname or initial, e.g. ${esc(nm)} K.`;$("#nm").focus();return;}
   if(S.lastName&&S.lastName!==k)newPerson();
-  S.name=nm;S.lastName=k;if(!S.myNames.includes(k))S.myNames.push(k);if(!S.uid)S.uid=Math.random().toString(36).slice(2,8);save();
+  try{sessionStorage.setItem("mt_started","1");}catch(e){}S.name=nm;S.lastName=k;if(!S.myNames.includes(k))S.myNames.push(k);if(!S.uid)S.uid=Math.random().toString(36).slice(2,8);save();
   if(SA)bgSend({name:nm,team:S.team,idea:"JOIN:"+S.uid}).catch(()=>{});
   try{paintNav();}catch(e){}location.hash="#play";};
 
