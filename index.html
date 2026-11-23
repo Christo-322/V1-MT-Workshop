@@ -623,6 +623,15 @@ body.noname nav a:not([data-v="start"]){opacity:.45}
 .pm.zero{opacity:.55}.pm.on{border-color:var(--navy);box-shadow:0 0 0 2px var(--navy)}
 .pm-sel{margin-top:8px;padding:14px;border:1px solid var(--line);border-radius:12px;background:#f7fafc}
 .pm-sel h3{display:flex;align-items:center;gap:10px;margin:0 0 10px;font-size:17px;color:var(--navy)}.pm-sel h3 .btn{margin-left:auto}
+
+nav a.locked{opacity:.55}nav a.locked .nn{display:none}
+.phase2{max-width:620px;margin:40px auto;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px}
+.p2-ic{width:72px;height:72px;border-radius:50%;background:var(--tint);display:grid;place-items:center;font-size:32px}
+.phase2 h1{margin:0}.phase2 .lead{margin:0}
+.p2-steps{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;margin:8px 0}
+.p2-steps div{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;text-align:left;display:flex;flex-direction:column;gap:4px}
+.p2-steps b{color:var(--navy)}.p2-steps span{font-size:13px;color:var(--muted)}
+.p2-steps div:last-child{border-style:dashed}
 </style>
 </head>
 <body>
@@ -635,7 +644,7 @@ body.noname nav a:not([data-v="start"]){opacity:.45}
     <a href="#critique" data-v="critique"><i class="nn">3</i>🚩 Critique</a>
     <a href="#top" data-v="top"><i class="nn">4</i>🏆 Top critiques</a>
     <a href="#make" data-v="make"><i class="nn">5</i>✏️ Make</a>
-    <a href="#share" data-v="share"><i class="nn">6</i>📣 Pitch</a>
+    <a href="#share" data-v="share" class="locked"><i class="nn">6</i>🔒 Pitch</a>
   </nav>
 </header>
 <main>
@@ -668,6 +677,7 @@ const CONFIG={deadline:"[deadline to confirm]",chat:"the MT workshop team chat",
  TEAM_CRITIQUES:/*TEAM*/[]/*END*/,
  TEAM_AT:/*TAT*/""/*TEND*/,
  LIST2:["Only 57% finish adding a receiver: banks missing, validation errors, too many steps","\"Choose one option\" (IFSC or select bank) makes people stop; most don't know their IFSC","Bank and branch search show a blank screen when nothing is found","Long IFSC and account numbers are typed with no check, unlike an exchange-house clerk","People fear the money gets stuck or is lost if a transfer fails","Errors say \"must be at least 11 characters\" or show codes, not what to do next","Rate, fee and what the family gets don't feel like one clear number"],
+ PITCH_LOCKED:true,
  LIST3:["Full-refund / SLA guarantee shown inside the flow", "In case of SMV, instil new user trust by showing that details are validated", "Simplify beneficiary add: progress bar, fewer steps, more user friendly", "Stories feature: real videos (not avatars) showing the transfer end-to-end, social proofing", "In-app wallet feature: free AED 5 (locked to MT) test transfer for 90-day dormant profiles", "In-language help: audio/voiceover per field, language picker, detect language from EFR/POB", "AI/voice assistant for money transfer: adds beneficiary from a screenshot, pasted text or spoken details", "Social proof: \"1,240 people from your company sent money this month\"", "Show delivery ETA, on dashboard and summary", "Pre-warn compliance-flagged users (new)", "54 of 195 un-acquired users didn't know First Transfer Free exists", "Switch Spin The Wheel off for 15+ transfer users (new)"],
  entries:{name:"1327906797",team:"1455560086",critique:"1241519342",idea:"199069060",pulse:"1085171165"}};
 
@@ -720,12 +730,13 @@ function updCounter(){const n=Object.keys(S.flags).length;const c=$("#counter");
 
 /* ================= ROUTER ================= */
 const VIEWS=["start","play","inspire","critique","top","make","share"];const rendered={};
-const FLOW={play:["inspire","✨ Inspire","See how other apps solve it."],data:["inspire","✨ Inspire","See how other apps solve it."],inspire:["critique","🚩 Critique","Tap any screen and write what's wrong. 7 minutes."],critique:["top","🏆 Top critiques","See what most people said."],top:["make","✏️ Make","Pick one and design the fix."],make:["share","📣 Pitch","Turn your fix into an idea card for the team chat."]};
+const FLOW={play:["inspire","✨ Inspire","See how other apps solve it."],data:["inspire","✨ Inspire","See how other apps solve it."],inspire:["critique","🚩 Critique","Tap any screen and write what's wrong. 7 minutes."],critique:["top","🏆 Top critiques","See what most people said."],top:["make","✏️ Make","Pick one and design the fix."]};
 function paintNav(){if(!S.seen)S.seen=[];document.querySelectorAll("nav a .nn").forEach(n=>{const v=n.parentElement.dataset.v;const done=S.seen.includes(v);n.textContent=done?"✓":String(VIEWS.indexOf(v));n.classList.toggle("done",done);});}
 function flowBar(v){const bar=$("#nextfix");if(v==="host"){bar.style.display="none";document.body.classList.remove("hasnext");return;}const n=VIEWS.indexOf(v),T=VIEWS.length-1;document.body.classList.toggle("hasnext",v!=="start");
  if(v==="start"){bar.style.display="none";return;}bar.style.display="";
  if(FLOW[v]){const [to,lab,why]=FLOW[v];const un=(v==="critique"&&live())?unsent().length:0;bar.innerHTML=`<div class="nf-in"><div class="nf-t">${un?`<span class="small"><b style="color:var(--errtx)">${un} note${un>1?"s":""} not sent yet</b></span>`:""}</div><a class="btn p nf-go" href="#${to}"><span>Next</span><b>${lab}</b><i>→</i></a></div>`;}
- else bar.innerHTML=`<div class="nf-in"><div class="nf-t"><b>🎉 Done! Post your card in ${esc(CONFIG.chat)}</b></div><a class="btn s" href="#make">✏️ Design another</a></div>`;}
+ else if(v==="make")bar.innerHTML=`<div class="nf-in"><div class="nf-t"><span class="small" style="background:#fff;border-radius:999px;padding:4px 12px;box-shadow:0 4px 14px rgba(0,52,78,.15)">🎉 That's today's studio. Thank you!</span></div></div>`;
+ else bar.innerHTML="";}
 function started(){try{return sessionStorage.getItem("mt_started")==="1";}catch(e){return !!(S.name||"").trim();}}
 function route(){let v=(location.hash||"#start").slice(1);if(v==="gallery")v="critique";if(v==="data"){v="play";history.replaceState(null,"","#play");}if((v!=="host"||SA)&&!VIEWS.includes(v))v="start";const named=!!(S.name||"").trim()&&started();document.body.classList.toggle("noname",!named);if(v!=="start"&&v!=="host"&&!named){if(location.hash&&location.hash!=="#start"){history.replaceState(null,"","#start");setTimeout(()=>{const e=$("#nmerr");if(e)e.textContent="Add your name to start";const n=$("#nm");if(n)n.focus();},50);}v="start";}
  [...VIEWS,"host"].forEach(x=>$("#v-"+x).classList.toggle("on",x===v));document.querySelectorAll("nav a").forEach(a=>a.classList.toggle("on",a.dataset.v===v));
@@ -789,7 +800,7 @@ R.start=()=>{
  <p class="lead">Our money transfer flow, for you to break and fix.</p>
  <div class="card"><div style="max-width:420px"><label class="fl" for="nm">Your name</label><input type="text" id="nm" value="${esc(S.name)}" placeholder="e.g. Rufina"></div>
  <div class="go" style="margin-top:14px"><button class="btn r" id="go" style="padding:12px 24px;font-size:16px">Start ▶</button><span class="nmerr" id="nmerr" role="alert"></span></div></div>
- <div class="rooms6">${[["#play","▶","Experience","Use the real app"],["#inspire","✨","Inspire","Others do it better"],["#critique","🚩","Critique","What's wrong"],["#top","🏆","Top critiques","What most said"],["#make","✏️","Make","Design a fix"],["#share","📣","Pitch","Share your idea"]].map((r,i)=>`<a class="r6" href="${r[0]}"><em>${r[1]}</em><b>${i+1}. ${r[2]}</b><span>${r[3]}</span></a>`).join("")}</div>
+ <div class="rooms6">${[["#play","▶","Experience","Use the real app"],["#inspire","✨","Inspire","Others do it better"],["#critique","🚩","Critique","What's wrong"],["#top","🏆","Top critiques","What most said"],["#make","✏️","Make","Design a fix"],["#share","🔒","Pitch","Phase 2"]].map((r,i)=>`<a class="r6" href="${r[0]}"><em>${r[1]}</em><b>${i+1}. ${r[2]}</b><span>${r[3]}</span></a>`).join("")}</div>
  <div class="rules">${["💡 Wild ideas welcome","🛠️ Any tool counts","👷 Design for our users","🤝 Critique ideas, not people"].map(x=>`<span>${x}</span>`).join("")}</div>
  <p class="small muted" style="margin-top:10px">Saved on this device as you go.</p>`;
  $("#nm").oninput=()=>{const e=$("#nmerr");if(e)e.textContent="";};
@@ -1567,7 +1578,11 @@ async function renderCard(){const c=S.card;const W=1080,H=1350;const cv=document
  T("C3Pay · Money Transfer Open Studio",W/2,H-44,20,"#737780",500,0,0,"center");
  return cv;}
 function cardText(){const c=S.card;return `💡 IDEA: ${c.title||""}\nScreen: ${S.fix?(CAP[S.fix]||S.fix):"-"}\nProblem: ${c.problem||"-"}\nThe fix: ${c.fix||"-"}\nHelps: ${(c.who||[]).map(i=>CONSTRAINTS[i][1]).join(", ")||"-"}\nInspired by: ${c.insp||"-"}${c.link?`\nLink: ${c.link}`:""}\nBy: ${[S.name,S.team].filter(Boolean).join(" · ")}`;}
-R.share=()=>{
+R.share=()=>{if(CONFIG.PITCH_LOCKED){$("#v-share").innerHTML=`<div class="phase2"><div class="p2-ic">🔒</div><h1>Pitch is coming in Phase 2</h1>
+ <p class="lead">Today is about finding the problems and sketching fixes. Next, we'll plan Phase 2 together: picking the strongest ideas and pitching them.</p>
+ <div class="p2-steps"><div><b>Today</b><span>Experience · Inspire · Critique · Top critiques · Make</span></div><div><b>Phase 2</b><span>Pitch the best fixes, vote, and plan what we build</span></div></div>
+ <a class="btn p" href="#make">✏️ Back to Make</a></div>`;return;}
+
  if(!S.build)S.build=TEMPLATES.blank.b();if(!S.mark)S.mark={};if(!S.cons)S.cons=[];
  S.card=Object.assign({title:"",problem:"",fix:"",who:null,insp:"",after:null,link:""},S.card||{});const c=S.card;
  if(S.pick){const t=S.pick.l===1?S.pick.t.replace(/^[^:]{0,60}: /,""):S.pick.t;if(S.pick.l===3||S.pick.l===0){if(!c.fix)c.fix=S.idea||t;}else if(!c.problem)c.problem=t;}
