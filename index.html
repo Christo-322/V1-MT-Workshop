@@ -725,6 +725,10 @@ main{padding-bottom:110px!important}
 .hmw-shot{width:47%!important}.hmw-shot img{object-fit:contain!important;object-position:center!important;background:#fff}
 .hmw-shot.s0{transform:rotate(-3deg)!important}.hmw-shot.s1{transform:rotate(3deg) translateY(8px)!important}
 .hmw:hover .hmw-shot.s0{transform:rotate(-1deg) scale(1.04)!important}.hmw:hover .hmw-shot.s1{transform:rotate(1deg) translateY(4px) scale(1.04)!important}
+.hmw-vis{height:auto!important;min-height:190px;padding:18px 18px 0!important;align-items:flex-end!important;flex-direction:column}
+.hmw-phone{width:100%;max-width:250px;margin:0 auto;background:#fff;border-radius:18px 18px 0 0;box-shadow:0 -2px 0 #fff,0 12px 28px rgba(16,40,80,.16);padding:8px 6px 4px;border:6px solid #1d2733;border-bottom:0}
+.hmw-phone canvas{display:block;width:100%;height:auto}
+.hmw-tag{position:absolute;left:12px;top:12px;background:rgba(15,30,60,.82);color:#fff;font-size:10.5px;padding:3px 8px;border-radius:999px}
 </style>
 </head>
 <body>
@@ -893,7 +897,7 @@ R.start=()=>{
  <p class="lead">Our money transfer flow, for you to break and fix.</p>
  <div class="card"><div style="max-width:420px"><label class="fl" for="nm">Your name</label><input type="text" id="nm" value="${esc(S.name)}" placeholder="e.g. Rufina"></div>
  <div class="go" style="margin-top:14px"><button class="btn r" id="go" style="padding:12px 24px;font-size:16px">Start ▶</button><span class="nmerr" id="nmerr" role="alert"></span></div></div>
- <div class="rooms6">${[["#play","▶","Experience","Use the real app"],["#inspire","✨","Inspire","Others do it better"],["#critique","🚩","Critique","What's wrong"],["#top","🏆","Top critiques","What most said"],["#make","✏️","Make","Design a fix"],["#share","🔒","Pitch","Phase 2"]].map((r,i)=>`<a class="r6" href="${r[0]}"><em>${r[1]}</em><b>${i+1}. ${r[2]}</b><span>${r[3]}</span></a>`).join("")}</div>
+ <div class="rooms6">${[["#play","▶","Experience","Use the real app"],["#inspire","✨","Inspire","Competitor benchmarking"],["#critique","🚩","Critique","What's wrong"],["#top","🏆","Top critiques","What most said"],["#make","✏️","Make","Design a fix"],["#share","🔒","Pitch","Phase 2"]].map((r,i)=>`<a class="r6" href="${r[0]}"><em>${r[1]}</em><b>${i+1}. ${r[2]}</b><span>${r[3]}</span></a>`).join("")}</div>
  <div class="rules">${["💡 Wild ideas welcome","🛠️ Any tool counts","👷 Design for our users","🤝 Critique ideas, not people"].map(x=>`<span>${x}</span>`).join("")}</div>
  <p class="small muted" style="margin-top:10px">Saved on this device as you go.</p>`;
  $("#nm").oninput=()=>{const e=$("#nmerr");if(e)e.textContent="";};
@@ -1606,17 +1610,29 @@ function newPerson(){const keep={resetSeen:S.resetSeen,resetPending:S.resetPendi
  ["flags","sent","votes","hidden","likes","card","pick","fix","idea","ideas","pulse","cons","upl","mark","build","seen","teamRaw","ltab","critErr","uid"].forEach(x=>delete S[x]);
  S.flags={};S.cons=[];Object.assign(S,keep);S.uid=Math.random().toString(36).slice(2,8);}
 
-const HMW_V={"receiver": [["asp-09", "Aspora"], ["bot-7", "Botim"]], "ifsc": [["asp-06", "Aspora"], ["bot-9", "Botim"]], "deadend": [["ttp-5", "Taptap Send"], ["ttp-4", "Taptap Send"]], "typos": [["asp-10", "Aspora"], ["mob-10", "Google Pay"]], "fear": [["asp-02", "Aspora"], ["mob-14", "Wise"]], "errors": [["mob-3", "N26"], ["mob-7", "Careem"]], "price": [["bot-3", "Botim"], ["mob-2", "Monzo"]], "trust": [["asp-04", "Aspora"], ["mob-16", "Shopee"]]};
 const HMW_BG=["#e8f0ff","#e9f7f1","#fff4e5","#f1ecff","#e6f6fb","#fdecef","#eef5e6","#fff0f6"];
+const HMW_V={
+ receiver:()=>[B("title",{text:"Add receiver"}),B("option",{icon:"📷",title:"Take a photo",sub:"Of the bank details or passbook"}),B("option",{icon:"🎤",title:"Say it in Hindi",sub:"We fill the form"})],
+ ifsc:()=>[B("text",{text:"No IFSC? No problem."}),B("option",{icon:"🏦",title:"Pick your bank",sub:"Federal Bank · SBI · HDFC"}),B("option",{icon:"📍",title:"Pick the city",sub:"We find the branch"})],
+ deadend:()=>[B("input",{label:"Search bank",value:"fedral",ph:""}),B("banner",{text:"Did you mean Federal Bank?",tone:"info"}),B("option",{icon:"📞",title:"Can't find it?",sub:"We'll call you"})],
+ typos:()=>[B("text",{text:"Making sure it goes to the right person"}),B("receiver",{name:"RAMESH KUMAR",sub:"Federal Bank · ••6248",ok:true}),B("button",{text:"Yes, this is right",style:"primary"})],
+ fear:()=>[B("steps",{labels:"Sent, With bank, Received",cur:"2"}),B("banner",{text:"Family can track it too by SMS",tone:"info"}),B("banner",{text:"Late by 2 hours? We call you.",tone:"good"})],
+ errors:()=>[B("input",{label:"Account number",value:"20740100",ph:""}),B("banner",{text:"Need 11 to 16 numbers. You typed 8.",tone:"warn"}),B("option",{icon:"🔊",title:"Listen in Hindi",sub:"What to do next"})],
+ price:()=>[B("amount",{aed:"1,000",loc:"25,170",cur:"INR",rate:"Family gets ₹25,170",fee:"FIRST ONE FREE"}),B("button",{text:"Send ₹25,170 home",style:"primary"})],
+ trust:()=>[B("receiver",{name:"AMMA",sub:"✓ 5 transfers delivered",ok:true}),B("banner",{text:"200 people from your company use C3Pay",tone:"info"}),B("banner",{text:"99.7% arrived in under 2 hours",tone:"good"})]};
+function drawComp(cv,blocks){const tmp=document.createElement("canvas");tmp.width=BW*2;tmp.height=BH*2;const c=tmp.getContext("2d");c.scale(2,2);const hits=drawBuild(c,blocks,-1);
+ const y0=Math.max(0,Math.min(...hits.map(h=>h.y0))-10),y1=Math.min(BH,Math.max(...hits.map(h=>h.y1))+10),h=y1-y0;
+ cv.width=BW*2;cv.height=h*2;cv.getContext("2d").drawImage(tmp,0,y0*2,BW*2,h*2,0,0,BW*2,h*2);}
+
 const HMW=[
- ["receiver","🧾","Only 57% finish adding a receiver","make adding a receiver feel quick and easy?",["Progress bar, fewer steps","Add from photo, text or voice"]],
- ["ifsc","🏦","Most people don't know their IFSC","help people pick the right bank without an IFSC?",["Choose bank by logo","Read it from a passbook photo"]],
- ["deadend","🔍","Search shows a blank screen","make sure no one hits a dead end?",["Show close matches","Help in your language"]],
- ["typos","🔢","Long numbers typed with no check","catch mistakes like the exchange-house clerk does?",["Details checked ✓","Verified name before sending"]],
- ["fear","😟","People fear the money gets stuck","make people feel sure their money will arrive?",["Refund promise in the flow","Delivery time on summary","Free AED 5 test transfer"]],
- ["errors","⚠️","Errors show codes, not next steps","tell people what to do when something goes wrong?",["Audio help per field","Warn early about ID checks"]],
- ["price","💱","Rate, fee and amount feel like 3 numbers","show one clear amount the family gets?",["All-in price, one line","Show 'first transfer free' up front"]],
- ["trust","👥","New users don't trust sending yet","build trust before the first transfer?",["Real people's stories","\"1,240 from your company sent money\""]]];
+ ["receiver","🧾","Only 57% finish adding a receiver","make adding a receiver feel quick and easy?",["Add from a photo","Add by voice"]],
+ ["ifsc","🏦","Most people don't know their IFSC","help people pick the right bank without an IFSC?",["Pick bank by logo","Pick city, we find branch"]],
+ ["deadend","🔍","Search shows a blank screen","make sure no one hits a dead end?",["'Did you mean…?'","We call you back"]],
+ ["typos","🔢","Long numbers typed with no check","catch mistakes like the exchange-house clerk does?",["Full-screen name check","Big 'Yes, this is right'"]],
+ ["fear","😟","People fear the money gets stuck","make people feel sure their money will arrive?",["Family tracks it by SMS","We call if it's late"]],
+ ["errors","⚠️","Errors show codes, not next steps","tell people what to do when something goes wrong?",["Say what's wrong + how to fix","Listen in Hindi"]],
+ ["price","💱","Rate, fee and amount feel like 3 numbers","show one clear amount the family gets?",["One number: what family gets","First transfer free, up front"]],
+ ["trust","👥","New users don't trust sending yet","build trust before the first transfer?",["Verified receiver badge","Colleagues use it","Delivery rate shown"]]];
 function likeCounts(){const per=new Map();LIVE_ROWS.forEach(r=>{const m=/^(UN)?LIKE:([\w-]+)/.exec(r.idea);if(!m)return;const n=(r.name||"?").toLowerCase();if(!per.has(m[2]))per.set(m[2],new Set());m[1]?per.get(m[2]).delete(n):per.get(m[2]).add(n);});
  const me=((S.name||"").trim()||"you").toLowerCase();Object.keys(Object.fromEntries(per)).forEach(()=>{});
  (S.likes||[]).forEach(k=>{if(!per.has(k))per.set(k,new Set());per.get(k).add(me);});per.forEach((set,k)=>{if(!(S.likes||[]).includes(k))set.delete(me);});
@@ -1895,12 +1911,12 @@ const NUMS=[["57%","finish adding a receiver","Funnel data"],["20 of 55","fear m
 R.inspire=()=>{
  const TABS=[["asp","Aspora"],["ttp","Taptap Send"],["oth","Botim"],["mob","⭐ Best in world"]];
  if(!S.insTab)S.insTab="asp";
- $("#v-inspire").innerHTML=`<h1>What other players do</h1>
+ $("#v-inspire").innerHTML=`<h1>Competitor benchmarking</h1>
  <p class="lead">Swipe through real screens. Steal what works.</p>
  ${CONFIG.FUNNEL?`<div class="dslot" style="margin-top:14px"><button class="dimg" data-zoom="${esc(CONFIG.FUNNEL)}" data-cap="Money transfer funnel"><img src="${esc(CONFIG.FUNNEL)}" alt="Funnel"></button></div>`:""}
  <div class="itabs" role="tablist">${TABS.map(([k,n])=>`<button role="tab" data-t="${k}">${n}</button>`).join("")}</div>
  ${TABS.map(([k])=>`<div class="ipane" id="${k}"></div>`).join("")}
- <h2 style="margin-top:34px">How might we…</h2><p class="muted" style="margin-top:0">Our known problems, and who already solves them. Tap a screen to zoom, 🤍 the ones you want to solve.</p>
+ <h2 style="margin-top:34px">How might we…</h2><p class="muted" style="margin-top:0">Our known problems, with a C3Pay idea for each from past research. 🤍 the ones you want to solve.</p>
  <div class="chips mfil" id="mfil"></div><div class="mood" id="mood"></div>`;
  wireZoom($("#v-inspire"));
  viewer($("#asp"),ASPORA.map(([n,c,p],k)=>({src:COMP(IMGA(`img/comp/aspora-${n}.jpg`)),app:"Aspora",cap:c,good:CRIT_ASP[k][0].slice(0,1),bad:CRIT_ASP[k][1].slice(0,1)})),{strip:true});
@@ -1917,11 +1933,11 @@ R.inspire=()=>{
   if(S.moodF==="top")arr=arr.filter(m=>(L[m.k]||0)>0).sort((a,b)=>(L[b.k]||0)-(L[a.k]||0));
   $("#mood").innerHTML=arr.length?`<div class="hmwgrid">${arr.map((m,i)=>`<article class="hmw">
    <button class="vm-like${mine.has(m.k)?" on":""}" data-l="${m.k}" aria-label="Like">${mine.has(m.k)?"❤️":"🤍"}<b>${L[m.k]||""}</b></button>
-   <div class="hmw-vis" style="background:${HMW_BG[i%8]}">${(HMW_V[m.k.slice(4)]||[]).map(([f,a],j)=>`<button class="hmw-shot s${j}" data-z="${COMP("img/mood/"+f+".jpg")}" data-a="${esc(a)}" aria-label="Zoom ${esc(a)}"><img src="${COMP("img/mood/"+f+".jpg")}" alt="" loading="lazy"><span>${esc(a)}</span></button>`).join("")}</div>
+   <div class="hmw-vis" style="background:${HMW_BG[i%8]}"><div class="hmw-phone"><canvas data-v="${m.k.slice(4)}"></canvas></div><span class="hmw-tag">C3Pay idea</span></div>
    <div class="hmw-iss"><span class="hmw-ic">${m.ic}</span>${esc(m.iss)}</div>
    <p class="hmw-q"><span>How might we</span> ${esc(m.q)}</p>
    <div class="hmw-ids">${m.ids.map(t=>`<span class="hmw-id">💡 ${esc(t)}</span>`).join("")}</div></article>`).join("")}</div>`:`<div class="notice">No likes yet. Tap 🤍 on a question.</div>`;
-  $("#mood").querySelectorAll("[data-z]").forEach(b=>b.onclick=()=>{const o=document.createElement("div");o.className="hmw-zoom";o.innerHTML=`<figure><img src="${b.dataset.z}" alt=""><figcaption>Seen in ${b.dataset.a} · tap to close</figcaption></figure>`;o.onclick=()=>o.remove();document.body.appendChild(o);});
+  $("#mood").querySelectorAll("canvas[data-v]").forEach(cv=>{const f=HMW_V[cv.dataset.v];if(f)drawComp(cv,f());});
   $("#mood").querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{const k=b.dataset.l;if(!S.likes)S.likes=[];const on=S.likes.includes(k);
    S.likes=on?S.likes.filter(x=>x!==k):[...S.likes,k];save();if(SA)bgSend(Object.assign(who(),{idea:(on?"UNLIKE:":"LIKE:")+k})).catch(()=>{});paintMood();});};
  document.querySelectorAll("#mfil .chip").forEach(b=>b.onclick=()=>{S.moodF=b.dataset.f;save();paintMood();});
