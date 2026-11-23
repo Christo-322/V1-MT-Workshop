@@ -694,6 +694,19 @@ body.hasnext main{padding-bottom:110px}
 .hmw-q span{display:block;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:#2d6cdf;font-weight:500;margin-bottom:2px}
 .hmw-ids{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto}
 .hmw-id{font-size:12.5px;background:#eef4ff;color:#1f3b73;border-radius:999px;padding:5px 10px}
+
+/* compact headings so more fits in the first fold */
+h1{font-size:24px!important;line-height:29px!important;margin:14px 0 4px!important}
+h2{font-size:18px!important;line-height:23px!important;margin:20px 0 6px!important}
+.lead,h1+p{font-size:15px;margin-top:0}
+/* readable tab counts */
+.ltabs .cnt,.itabs .cnt{background:#e3ecfb!important;color:#173a6b!important;font-weight:500;min-width:22px;display:inline-block;text-align:center;line-height:20px}
+.ltabs button[aria-selected=true] .cnt,.itabs button[aria-selected=true] .cnt{background:#173a6b!important;color:#fff!important}
+/* clearer add-issue button */
+.isadd{border:1.5px solid #2d6cdf!important;background:#f3f7ff!important;color:#2d6cdf!important;font-weight:500!important;text-align:center!important;padding:10px 12px!important;display:flex;align-items:center;justify-content:center;gap:8px}
+.isadd:hover{background:#e6efff!important}
+.isadd-p{width:20px;height:20px;border-radius:50%;background:#2d6cdf;color:#fff;display:grid;place-items:center;font-size:15px;line-height:1}
+main{padding-bottom:110px!important}
 </style>
 </head>
 <body>
@@ -825,7 +838,7 @@ function openFlag(id,label,src){
  $("#mdc").innerHTML=`<button class="mdx" aria-label="Close">✕</button>${src!==null?`<img src="${src||img(id)}" alt="">`:""}
  <div style="flex:1;min-width:0"><span class="kick" style="margin-top:0">Critique</span><h2 style="margin-top:8px">${esc(title)}</h2>
  <p class="small muted">One issue per line. Press Enter for the next one.</p>
- <div class="isl" id="isl"></div><button class="isadd" id="isadd" type="button">+ Add another issue</button>
+ <div class="isl" id="isl"></div><button class="isadd" id="isadd" type="button"><span class="isadd-p">+</span> Add another issue</button>
  <textarea id="fnote" hidden>${esc(cur)}</textarea>
  <div class="chips" style="margin-top:8px" id="fq"></div>
  <div style="display:flex;gap:8px;margin-top:12px;align-items:center;flex-wrap:wrap">${live()&&!SA?`<a class="btn p" id="fsave" href="#" target="_blank" rel="noopener">🚩 Save &amp; send</a>`:`<button class="btn p" id="fsave">${live()?"🚩 Save &amp; send":"🚩 Save"}</button>`}${cur?'<button class="btn s" id="fdel">Remove</button>':''}${live()?`<span class="small muted">${SA?"Goes straight to the team sheet.":"Goes straight to the team sheet. A Google tab opens: just come back here."}</span>`:""}</div></div>`;
