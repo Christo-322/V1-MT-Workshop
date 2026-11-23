@@ -665,6 +665,9 @@ nav a.locked{opacity:.55}nav a.locked .nn{display:none}
 .lv-dis{position:absolute;display:none;box-shadow:0 0 0 3px #fff,0 8px 0 3px #fff;align-items:center;justify-content:center;background:#f5f6f8;border-radius:8px;font:500 15px Ubuntu,sans-serif;color:#d2d6db;z-index:5;cursor:default}
 .lv-amtcta.dis{background-image:none!important;background:transparent}
 .lv-amtcta.dis::after{content:"Send Now";position:absolute;left:16px;top:11px;width:328px;height:44px;border-radius:8px;background:#f5f6f8;color:#d2d6db;font:500 15px/44px Ubuntu,sans-serif;text-align:center}
+
+.dashbal{position:absolute;left:12px;top:68px;width:200px;height:32px;background:#fff;font:400 19px Ubuntu,sans-serif;color:#0b3a53;display:flex;align-items:baseline;gap:0}
+.dashbal b{font:700 30px Ubuntu,sans-serif;color:#0b3a53;letter-spacing:-.5px}
 </style>
 </head>
 <body>
@@ -940,7 +943,7 @@ function autoFill(){const c=PR.cur,set=(k,v)=>{LV[k]=v;};
  if(c==="lv17"){if(!LV.first.trim())set("first","Christo");if(!LV.last.trim())set("last","Paul");}
  else if(c==="lv09"){const v=LV.ifsc.trim().toUpperCase();if(!IFSC_OK[v])set("ifsc","FDRL0000207");}
  else if(c==="lv08"){if(LV.acct.replace(/\D/g,"").length<11)set("acct","20740100562481");}
- else if(c==="lv05"||c==="pw3"){const a=parseFloat(LV.aed);if(!a||a<MINAED||a>BAL)set("aed","30");}
+ else if(c==="lv05"||c==="pw3"){const a=parseFloat(LV.aed);if(!a||a<MINAED||a+FEE()>BAL)set("aed","30");}
  else if(c==="pw2"){if(LV.wname.trim().split(/\s+/).filter(Boolean).length<2)set("wname","Ahmed Ali");if(!/^\d{10}$/.test(LV.wmob))set("wmob","3001234567");}
  else if(c==="27906"){if(LV.otp!=="123456"){set("otp","123456");LV.otpErr=false;}}}
 function nextP(){const n=node();const LDn=LIVE[PR.cur];if(LDn&&LDn.submit&&!n.back){const fi=document.querySelector("#plive input:focus");if(fi)fi.blur();autoFill();return LDn.submit();}if(n.back){let k=n.back;let to=PR.cur;while(k-->0&&PR.hist.length)to=PR.hist.pop();track(to);PR.cur=to;return paintP();}
@@ -957,7 +960,8 @@ function finishRun(){if(PR.done)return;PR.done=true;S.runs.push(runSummary());sa
 const LV={first:"",last:"",ifsc:"",branch:"MELOOR",acct:"",aed:"",wname:"",wmob:"",otp:"",bq:"",brq:"",saved:null,wsaved:null,otpErr:false};
 function resetLV(){Object.assign(LV,{first:"",last:"",ifsc:"",branch:"MELOOR",acct:"",aed:"",wname:"",wmob:"",otp:"",bq:"",brq:"",saved:null,wsaved:null,otpErr:false});}
 const IFSC_OK={FDRL0000207:"MELOOR",FDRL0000046:"KODUNGALLUR",FDRL0001155:"CHALAKUDY"};
-const RATE={INR:25.17,PKR:75.10},BAL=35.33,MINAED=25;
+const RATE={INR:25.17,PKR:75.10},MINAED=25;
+const isRep=()=>PR&&PR.j==="india";const FEE=()=>isRep()?21:0;Object.defineProperty(window,"BAL",{get:()=>isRep()?500:35.33});
 /* keyboards: cut from screenshots; key rects in screen coords */
 function qwertyKeys(){const k=[];const r1="1234567890",r2="qwertyuiop",r3="asdfghjkl",r4="zxcvbnm";
  [...r1].forEach((c,i)=>k.push([c,36*i,535,36,40]));[...r2].forEach((c,i)=>k.push([c,36*i,575,36,40]));
@@ -970,7 +974,7 @@ const KB={qwerty:{img:"lv13",top:492,keys:qwertyKeys()},num:{img:"lv08",top:514,
  otp:{img:"27906",top:574,keys:[["1","2","3",""],["4","5","6",""],["7","8","9","BK"],["","0","","OK"]].flatMap((r,ri)=>r.map((c,ci)=>[c,[5,94,183,271][ci],580+ri*50,84,44]))}};
 /* error sheets: [image, sheet top, buttons [[y0,y1,action]]] */
 const SHEETS={name:["lv16",496],ifsc11:["lv12",472],ifscBad:["lv10",496],acct11:["lv07",456],min:["lv04",496],bal:["lv02",419,[[664,712,"send"],[728,772,"close"]]],wfull:["pwe2",464],wmob:["pwe1",480]};
-const SUMMARY_ROWS=(cur)=>{const a=parseFloat(LV.aed)||0;return {send:`AED ${a.toFixed(2)}`,total:`AED ${a.toFixed(2)}`,get:`${cur} ${(a*RATE[cur]).toFixed(2)}`};};
+const SUMMARY_ROWS=(cur)=>{const a=parseFloat(LV.aed)||0;return {send:`AED ${a.toFixed(2)}`,total:`AED ${(a+FEE()).toFixed(2)}`,get:`${cur} ${(a*RATE[cur]).toFixed(2)}`};};
 const fullName=()=>LV.saved?LV.saved.name:`${LV.first.trim()} ${LV.last.trim()}`.trim();
 const T=(txt,x,y,w,h,font,color,align,bgMask)=>({t:"text",txt,x,y,w,h,font,color,align,mask:bgMask!==false});
 /* screen definitions keyed by journey node id */
@@ -985,7 +989,7 @@ const LIVE={
  lv08:{base:"lv08",auto:"acct",fields:[{k:"acct",r:[17,258,326,43],kb:"num",ph:"",max:18,digits:true}],btns:[[16,456,328,44]],
   extra:()=>[{html:bankBlock()}],
   submit(){const v=LV.acct.replace(/\D/g,"");if(v.length<11)return sheet("acct11");LV.saved=null;liveNext();}},
- lv05:{base:"lv05",amount:"INR",auto:"aed",btns:[[16,723,328,44]],submit(){amountSubmit();}},
+ lv05:{base:"lv05",amount:"INR",auto:"aed",extra:()=>isRep()?[T("500.00 AED",124,154,100,17,"700 12.5px Ubuntu,sans-serif","#1f2a33","left"),{t:"text",txt:`FEE: AED ${FEE().toFixed(2)}`,x:196,y:350,w:137,h:18,font:"700 12.5px Ubuntu,sans-serif",color:"#0b3a53",align:"right",mask:false,html:`<div class="lv-text" style="left:196px;top:350px;width:137px;height:18px;font:700 12.5px Ubuntu,sans-serif;color:#0b3a53;text-align:right;line-height:18px;background:#f9fafc">FEE: AED ${FEE().toFixed(2)}</div>`}]:[],btns:[[16,723,328,44]],submit(){amountSubmit();}},
  pw3:{base:"pw3",amount:"PKR",auto:"aed",btns:[[16,723,328,44]],submit(){amountSubmit();}},
  lv01:{base:"lv01",btns:[[16,723,328,44]],
   extra:()=>{const s=SUMMARY_ROWS("INR");const acc=LV.saved?LV.saved.acct:LV.acct;return [
@@ -994,6 +998,7 @@ const LIVE={
    T(acc,92,180,236,13,"300 10.5px Ubuntu,sans-serif","#3d3d3d","left"),
    T(s.send,180,267,149,18,"700 13px Ubuntu,sans-serif","#03111b","right"),
    T(s.total,180,333,149,18,"300 13px Ubuntu,sans-serif","#3b3b3b","right"),
+   ...(FEE()?[T(`AED ${FEE().toFixed(2)}`,180,310,149,18,"300 13px Ubuntu,sans-serif","#3b3b3b","right")]:[]),
    T(s.get,180,367,149,18,"700 13px Ubuntu,sans-serif","#03111b","right")];},
   submit(){liveNext();}},
  pw4:{base:"pw4",btns:[[16,723,328,44]],
@@ -1031,11 +1036,11 @@ function bankBlock(){const n=LV.bank||"Federal Bank",br=LV.branch||"MELOOR";retu
 function pickBank(n){LV.bank=n;goP("sb4","Picked "+n);}
 let LF=null; /* focused field key */
 function liveNext(){const n=node();goP(n.next);}
-function amountSubmit(){const a=parseFloat(LV.aed);if(!a||a<MINAED)return sheet("min");if(a>BAL)return sheet("bal");liveNext();}
+function amountSubmit(){const a=parseFloat(LV.aed);if(!a||a<MINAED)return sheet("min");if(a+FEE()>BAL)return sheet("bal");liveNext();}
 function sheet(k){const [im,top,btns]=SHEETS[k];const st=$("#pstage");const o=document.createElement("div");o.className="lv-sheet";
  o.innerHTML=`<div class="lv-dim"></div><div class="lv-crop" style="top:${top}px;height:${800-top}px;background-image:url('${img(im)}');background-position:0 -${top}px"></div>`;
  o.addEventListener("click",e=>{e.stopPropagation();const r=st.getBoundingClientRect(),k2=r.width/360,y=(e.clientY-r.top)/k2;
-  if(btns){const b=btns.find(b=>y>=b[0]&&y<=b[1]);if(!b)return;o.remove();if(b[2]==="send"){LV.aed=String(BAL);liveNext();}else focusField(LF);}
+  if(btns){const b=btns.find(b=>y>=b[0]&&y<=b[1]);if(!b)return;o.remove();if(b[2]==="send"){LV.aed=String((BAL-FEE()).toFixed(2));liveNext();}else focusField(LF);}
   else if(y>=top+200){o.remove();focusField(LF);}});
  hideKb(true);st.appendChild(o);PR.L.whatifs.push("Typed → error: "+k);}
 function kbHTML(type){const K=KB[type];return `<div class="lv-kb" data-kb="${type}" style="top:${K.top}px;height:${800-K.top}px;background-image:url('${img(K.img)}');background-position:0 -${K.top}px">${K.keys.map(([c,x,y,w,h])=>`<button tabindex="-1" data-key="${esc(c)}" style="left:${x}px;top:${y-K.top}px;width:${w}px;height:${h}px"></button>`).join("")}</div>`;}
@@ -1105,10 +1110,10 @@ const SCROLL={
  sb1:{src:"img/scroll/banks.jpg",top:240,h:560,show:()=>!LV.bq.trim(),html:()=>`<div class="bk-pop"></div><div class="bk-h">All Banks</div>${IN_BANKS.map(([n])=>bankRow(n)).join("")}<div style="height:24px"></div>`,tap:(x,y)=>{const r=POP_BANKS.find(([n,t])=>y>=t&&y<t+70);if(r)pickBank(r[0]);}},
  pw1:{src:"img/scroll/pakmethod.jpg",top:168,h:632,show:()=>true,tap:(x,y)=>{if(y>=300&&y<372)return goP("pw2","Picked Easy Paisa");if(y>8&&y<756)toast("In this prototype, pick Easy Paisa");}},
  sb4:{src:"img/scroll/branches.jpg",top:240,h:560,show:()=>!LV.brq.trim(),tap:(x,y)=>{const r=BR_ROWS.find(r=>y>=r[0]&&y<r[1]);if(r){LV.branch=r[2];goP(node().next,"Picked branch "+r[2]);}}},
- dash:{src:"img/scroll/dash.jpg",top:0,h:728,show:()=>true,tap:(x,y)=>{const go=()=>goP(node().next,"Tapped Send Money");
+ dash:{src:"img/scroll/dash.jpg",top:0,h:728,show:()=>true,over:()=>isRep()?`<div class="dashbal"><b>500</b>.00 AED</div>`:"",tap:(x,y)=>{const go=()=>goP(node().next,"Tapped Send Money");
    if((y>=370&&y<470&&x<95)||(y>=60&&y<365&&y>190)||(y>=597&&y<1000))return go();toast("In this prototype, tap Send Money To India");}}};
 function addScroller(){const d=SCROLL[PR.cur],live=$("#plive");if(!d||!live||CUSTOM[PR.cur])return;
- const el=document.createElement("div");el.className="pscroll";el.style.cssText=`top:${d.top}px;height:${d.h}px`;el.innerHTML=d.html?d.html().replace('<div class="bk-pop"></div>',`<div class="bk-pop" style="background-image:url('${COMP(d.src)}')"></div>`):`<img src="${COMP(d.src)}" alt="" draggable="false">`;
+ const el=document.createElement("div");el.className="pscroll";el.style.cssText=`top:${d.top}px;height:${d.h}px`;el.innerHTML=(d.over?d.over():"")+(d.html?d.html().replace('<div class="bk-pop"></div>',`<div class="bk-pop" style="background-image:url('${COMP(d.src)}')"></div>`):`<img src="${COMP(d.src)}" alt="" draggable="false">`);
  el.querySelectorAll(".bk-row").forEach(r=>r.addEventListener("click",e=>{e.stopPropagation();if(el.moved)return;pickBank(r.dataset.bank);}));
  if(!d.show())el.style.display="none";live.prepend(el);
  el.addEventListener("click",e=>{e.stopPropagation();const r=el.getBoundingClientRect(),k=r.height/d.h;d.tap((e.clientX-r.left)/k,(e.clientY-r.top)/k+el.scrollTop);});
