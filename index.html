@@ -600,6 +600,8 @@ body.hasnext .counter{bottom:96px}
 @keyframes nfpulse{0%,100%{box-shadow:0 0 0 4px #fff,0 14px 34px rgba(0,52,78,.45)}50%{box-shadow:0 0 0 4px #fff,0 0 0 10px rgba(43,118,156,.25),0 14px 34px rgba(0,52,78,.45)}}
 body.hasnext .counter{display:none!important}
 @media(max-width:700px){.nextfix .nf-go{padding:12px 16px 12px 18px;font-size:15px}}
+
+body.noname nav a:not([data-v="start"]){opacity:.45}
 </style>
 </head>
 <body>
@@ -703,7 +705,7 @@ function flowBar(v){const bar=$("#nextfix");if(v==="host"){bar.style.display="no
  if(v==="start"){bar.style.display="none";return;}bar.style.display="";
  if(FLOW[v]){const [to,lab,why]=FLOW[v];const un=(v==="critique"&&live())?unsent().length:0;bar.innerHTML=`<div class="nf-in"><div class="nf-t">${un?`<span class="small"><b style="color:var(--errtx)">${un} note${un>1?"s":""} not sent yet</b></span>`:""}</div><a class="btn p nf-go" href="#${to}"><span>Next</span><b>${lab}</b><i>→</i></a></div>`;}
  else bar.innerHTML=`<div class="nf-in"><div class="nf-t"><b>🎉 Done! Post your card in ${esc(CONFIG.chat)}</b></div><a class="btn s" href="#make">✏️ Design another</a></div>`;}
-function route(){let v=(location.hash||"#start").slice(1);if(v==="gallery")v="critique";if(v==="data"){v="play";history.replaceState(null,"","#play");}if((v!=="host"||SA)&&!VIEWS.includes(v))v="start";
+function route(){let v=(location.hash||"#start").slice(1);if(v==="gallery")v="critique";if(v==="data"){v="play";history.replaceState(null,"","#play");}if((v!=="host"||SA)&&!VIEWS.includes(v))v="start";document.body.classList.toggle("noname",!(S.name||"").trim());if(v!=="start"&&v!=="host"&&!(S.name||"").trim()){if(location.hash&&location.hash!=="#start"){history.replaceState(null,"","#start");setTimeout(()=>{const e=$("#nmerr");if(e)e.textContent="Add your name to start";const n=$("#nm");if(n)n.focus();},50);}v="start";}
  [...VIEWS,"host"].forEach(x=>$("#v-"+x).classList.toggle("on",x===v));document.querySelectorAll("nav a").forEach(a=>a.classList.toggle("on",a.dataset.v===v));
  if(v==="share"||v==="make"||v==="critique"||v==="top"||v==="host"||!rendered[v]){R[v]();rendered[v]=1;}
  if(v==="play")setTimeout(fitPhone,0);
