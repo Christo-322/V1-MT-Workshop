@@ -913,7 +913,7 @@ R.start=()=>{
  <div class="card"><div style="max-width:420px"><label class="fl" for="nm">Your name</label><input type="text" id="nm" value="${esc(S.name)}" placeholder="e.g. Rufina"></div>
  <div class="go" style="margin-top:14px"><button class="btn r" id="go" style="padding:12px 24px;font-size:16px">Start ▶</button><span class="nmerr" id="nmerr" role="alert"></span></div></div>
  <div class="rooms6">${[["#play","▶","Experience","Use the real app"],["#inspire","✨","Inspire","Competitor benchmarking"],["#critique","🚩","Critique","What's wrong"],["#top","🏆","Top critiques","What most said"],["#make","✏️","Make","Design a fix"],["#share","🔒","Pitch","Phase 2"]].map((r,i)=>`<a class="r6" href="${r[0]}"><em>${r[1]}</em><b>${i+1}. ${r[2]}</b><span>${r[3]}</span></a>`).join("")}</div>
- <div class="rules">${["💡 Wild ideas welcome","🛠️ Any tool counts","👷 Design for our users","🤝 Critique ideas, not people"].map(x=>`<span>${x}</span>`).join("")}</div>
+ <div class="rules">${["💡 Wild ideas welcome","🛠️ Any tool counts","👷 Design for our users"].map(x=>`<span>${x}</span>`).join("")}</div>
  <p class="small muted" style="margin-top:10px">Saved on this device as you go.</p>`;
  $("#nm").oninput=()=>{const e=$("#nmerr");if(e)e.textContent="";};
  $("#go").onclick=async()=>{const nm=$("#nm").value.trim().replace(/\s+/g," "),err=$("#nmerr");
