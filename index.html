@@ -1633,10 +1633,10 @@ const toksOf=t=>[...new Set(t.toLowerCase().replace(/[^a-z0-9\s]/g," ").split(/\
 const normT=t=>t.toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
 function simT(a,b){if(!a.length||!b.length)return 0;const B=new Set(b);let n=0;a.forEach(x=>{if(B.has(x))n++;});if(!n)return 0;const mn=Math.min(a.length,b.length),j=n/(a.length+b.length-n),o=n/mn;
  if(n>=2&&o>=.5)return o;if(n===1&&mn<=2&&j>=.25)return j+.2;
- if(n===1&&mn<=4&&j>=.15){const sh=a.find(x=>B.has(x));if(!GENERIC.has(sh))return j+.1;}return 0;}
+ if(n===1&&mn<=4&&j>=.15){const sh=a.find(x=>B.has(x));if(!GENERIC.has(sh))return j+.1;}if(n===1&&mn<=2&&j>=.12)return j+.05;return 0;}
 const CAPLIST=()=>Object.entries(CAP).filter(([k,v])=>v&&!/^Error/.test(v)).concat(Object.entries(CAP).filter(([k,v])=>v&&/^Error/.test(v))).sort((a,b)=>b[1].length-a[1].length);
 function splitLine(l){l=l.replace(/^["'\s]+|["'\s]+$/g,"").replace(/^[-•*\d.)\s]+/,"").replace(/^\[([^\]]+)\]\s*/,"$1: ").trim();if(l.length<3)return null;
- const ll=l.toLowerCase();const c=CAPLIST().find(([k,v])=>ll.startsWith(v.toLowerCase()+":"))||CAPLIST().map(([k,v])=>[k,v.replace(/\s*\([^)]*\)\s*$/,"")]).filter(([k,v])=>v.length>3).sort((a,b)=>b[1].length-a[1].length).find(([k,v])=>ll.startsWith(v.toLowerCase()+":"));return c?{scr:c[1],sid:c[0],note:l.slice(c[1].length+1).trim()}:{scr:"",sid:null,note:l};}
+ const ll=l.toLowerCase();const c=CAPLIST().find(([k,v])=>ll.startsWith(v.toLowerCase()+":"))||CAPLIST().map(([k,v])=>[k,v.replace(/\s*\([^)]*\)\s*$/,"")]).filter(([k,v])=>v.length>3).sort((a,b)=>b[1].length-a[1].length).find(([k,v])=>ll.startsWith(v.toLowerCase()+":"));if(c)return {scr:c[1],sid:c[0],note:l.slice(c[1].length+1).trim()};const u=/^([A-Za-z][^:]{2,50}):\s*(.{2,})$/.exec(l);if(u&&u[1].split(/\s+/).length<=6)return {scr:u[1].trim(),sid:null,note:u[2].trim()};return {scr:"",sid:null,note:l};}
 function critRows(){const rows=[];const me=(S.name||"").trim()||"You";
  LIVE_ROWS.forEach(r=>{if(r.crit)rows.push({name:r.name||"Someone",team:r.team,text:r.crit});});
  (CONFIG.TEAM_CRITIQUES||[]).forEach(l=>{const p=l.split("\t").map(x=>x.trim()).filter(Boolean);if(p.length>=2&&!/^name$/i.test(p[0]))rows.push({name:p[0],team:"",text:p.slice(1).join(" ")});else if(p.length===1&&!/^critiques?$/i.test(p[0]))rows.push({name:"Team",team:"",text:p[0]});});
@@ -1651,7 +1651,7 @@ function topGroups(){
  latest.forEach(x=>x.note.split(/\s+·\s+/).map(t=>t.trim()).filter(t=>t.length>1).forEach(t=>{const k=x.name.toLowerCase()+"|"+x.scr+"|"+normT(t);if(seen.has(k))return;seen.add(k);
   items.push({name:x.name,team:x.team,mine:x.mine,scr:x.scr,sid:x.sid,note:t,tk:toksOf(t),h:hsh(x.scr+"|"+normT(t))});}));
  const G=[];
- items.forEach(it=>{let best=null,bs=0;G.forEach(g=>{if(g.scr!==it.scr)return;let sc=0;g.m.forEach(m=>{const v=normT(m.note)===normT(it.note)?9:simT(m.tk,it.tk);if(v>sc)sc=v;});if(sc>bs){bs=sc;best=g;}});
+ items.forEach(it=>{let best=null,bs=0;G.forEach(g=>{if(g.scr!==it.scr)return;let mx=0,sum=0;g.m.forEach(m=>{const v=normT(m.note)===normT(it.note)?1.5:simT(m.tk,it.tk);sum+=Math.min(v,1);if(v>mx)mx=v;});const avg=sum/g.m.length;const sc=mx>=1.5?9:(avg>=.2?avg+mx/10:0);if(sc>bs){bs=sc;best=g;}});
   if(best)best.m.push(it);else G.push({scr:it.scr,sid:it.sid,m:[it]});});
  const votes=new Map(),hide=new Set();
  LIVE_ROWS.forEach(r=>{const v=/^VOTE:(\w+)/.exec(r.idea),hd=/^(UN)?HIDE:(\w+)/.exec(r.idea);if(v){if(!votes.has(v[1]))votes.set(v[1],new Set());votes.get(v[1]).add((r.name||"?").toLowerCase());}if(hd){hd[1]?hide.delete(hd[2]):hide.add(hd[2]);}});
