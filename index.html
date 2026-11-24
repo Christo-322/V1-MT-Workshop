@@ -729,6 +729,7 @@ main{padding-bottom:110px!important}
 .hmw-phone{width:100%;max-width:250px;margin:0 auto;background:#fff;border-radius:18px 18px 0 0;box-shadow:0 -2px 0 #fff,0 12px 28px rgba(16,40,80,.16);padding:8px 6px 4px;border:6px solid #1d2733;border-bottom:0}
 .hmw-phone canvas{display:block;width:100%;height:auto}
 .hmw-tag{position:absolute;left:12px;top:12px;background:rgba(15,30,60,.82);color:#fff;font-size:10.5px;padding:3px 8px;border-radius:999px}
+.dnote{font-size:12.5px;color:#5b4a12;background:#fff8e1;border-radius:10px;padding:8px 10px;line-height:1.35}
 </style>
 </head>
 <body>
@@ -766,7 +767,16 @@ const CONFIG={deadline:"[deadline to confirm]",chat:"the MT workshop team chat",
  DATA:{},
  /* Numbers per screen from CleverTap, for the Data room. users = people who saw the screen (for error screens: times shown).
     e.g. lv19:{users:12000}, lv18:{users:5400}, lv12:{users:830,note:"Mostly 10-character codes"} */
- SCREEN_DATA:{},
+ SCREEN_DATA:{
+  lv18:{users:123641,drop:.41,note:"Many of these picked wallet or cash pickup instead"},
+  lv17:{users:72776,drop:.27},
+  lv15:{users:52088,drop:.03},
+  sb1:{note:'Bank list, branch and IFSC are one step in CleverTap',users:50322,drop:.32},sb4:{note:'Bank list, branch and IFSC are one step in CleverTap',users:50322,drop:.32},lv09:{note:'Bank list, branch and IFSC are one step in CleverTap',users:50322,drop:.32},
+  lv08:{users:31156,drop:.04},
+  lv05:{users:28467,drop:.28,note:"15% never tap Continue; 16% more stop before Summary loads"},
+  lv01:{users:20483,drop:.13,note:"17,824 tapped Make transfer"},
+  "27906":{note:"OTP and success not tracked in this funnel yet"}},
+ DATA_NOTE:"CleverTap · India new receiver funnel",
  DATA_PERIOD:"[period to confirm]",
  /* Funnel screenshot for Inspire, e.g. "img/data/funnel.jpg" */
  FUNNEL:"",
@@ -1227,7 +1237,7 @@ const DTOG=[["users","👥","People reached"],["drop","📉","Drop-off here"],["
 function screenStats(id){const D=CONFIG.SCREEN_DATA||{},U=k=>(D[k]||{}).users;const st=funnelOf(jBase(PR.j));
  let k=st.findIndex(x=>x.id===id);let isErr=false;if(k<0){k=st.findIndex(x=>x.errs.some(e=>e.id===id));isErr=k>=0;}
  if(k<0)return {known:false};const step=st[k],nx=st[k+1];const u=U(id),un=nx?U(nx.id):null;
- return {known:true,isErr,users:u,drop:(!isErr&&u&&un!=null)?(u-un)/u:null,errs:step.errs.map(e=>({c:e.c.replace(/^Error: /,""),n:U(e.id)})),note:(D[id]||{}).note};}
+ return {known:true,isErr,users:u,drop:(D[id]||{}).drop!=null?D[id].drop:(!isErr&&u&&un!=null)?(u-un)/u:null,errs:step.errs.map(e=>({c:e.c.replace(/^Error: /,""),n:U(e.id)})),note:(D[id]||{}).note};}
 function paintData(){const el=$("#pdata"),tg=$("#dtogs");if(!el||!tg)return;if(!S.dtog)S.dtog={users:1,drop:1,errors:1,shot:0};
  tg.innerHTML=DTOG.map(([k,ic,l])=>`<button class="dtog" role="switch" aria-checked="${!!S.dtog[k]}" data-k="${k}"><span class="sw"></span>${ic} ${l}</button>`).join("");
  tg.querySelectorAll(".dtog").forEach(b=>b.onclick=()=>{S.dtog[b.dataset.k]=S.dtog[b.dataset.k]?0:1;save();paintData();});
@@ -1236,9 +1246,10 @@ function paintData(){const el=$("#pdata"),tg=$("#dtogs");if(!el||!tg)return;if(!
  if(on.users)out.push(`<div class="dcard"><span>${st.isErr?"Times shown":"People reached this screen"}</span><b>${dash(st.users!=null?fmtN(st.users):null)}</b></div>`);
  if(on.drop&&!st.isErr)out.push(`<div class="dcard"><span>Left at this screen</span><b>${dash(st.drop!=null?Math.round(st.drop*100)+"%":null)}</b></div>`);
  if(on.errors&&st.known&&!st.isErr)out.push(`<div class="dcard col"><span>Errors on this step</span>${st.errs.length?st.errs.map(e=>`<div class="derr">⚠ ${esc(e.c)}<b>${e.n!=null?fmtN(e.n)+"×":"—"}</b></div>`).join(""):`<span class="muted small">No error screens on this step</span>`}</div>`);
+ if((on.users||on.drop)&&st.known&&st.note)out.push(`<div class="dnote">💬 ${esc(st.note)}</div>`);
  if(on.shot)out.push(dsrc?`<button class="dimg" data-zoom="${esc(dsrc)}" data-cap="Data: ${esc(CAP[id]||id)}"><img src="${esc(dsrc)}" alt="CleverTap view"></button>`:`<div class="dph">CleverTap view for <b>${esc(CAP[id]||id)}</b> coming soon</div>`);
  const any=Object.values(CONFIG.SCREEN_DATA||{}).length;
- el.innerHTML=(out.length?out.join(""):`<div class="small muted">Turn on a toggle to see data.</div>`)+(any||!(on.users||on.drop||on.errors)?"":`<div class="small muted" style="margin-top:6px">Numbers appear here once the CleverTap figures are added.</div>`);
+ el.innerHTML=(out.length?out.join(""):`<div class="small muted">Turn on a toggle to see data.</div>`)+(any&&CONFIG.DATA_NOTE?`<div class="small muted" style="margin-top:6px">${esc(CONFIG.DATA_NOTE)}</div>`:"")+(any||!(on.users||on.drop||on.errors)?"":`<div class="small muted" style="margin-top:6px">Numbers appear here once the CleverTap figures are added.</div>`);
  wireZoom(el);}
 /* phone sized to fit the first fold */
 function fitPhone(){const ph=$("#pphone"),sc=$("#pscr");if(!ph||!sc||!$("#v-play").classList.contains("on"))return;
