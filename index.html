@@ -730,6 +730,10 @@ main{padding-bottom:110px!important}
 .hmw-phone canvas{display:block;width:100%;height:auto}
 .hmw-tag{position:absolute;left:12px;top:12px;background:rgba(15,30,60,.82);color:#fff;font-size:10.5px;padding:3px 8px;border-radius:999px}
 .dnote{font-size:12.5px;color:#5b4a12;background:#fff8e1;border-radius:10px;padding:8px 10px;line-height:1.35}
+.teamsbox{display:flex;gap:14px;align-items:flex-start;background:#eef2ff;border:1.5px solid #c7d2fe;border-radius:14px;padding:16px 18px;max-width:720px}
+.tb-ic{font-size:28px;width:52px;height:52px;border-radius:14px;background:#5b5fc7;display:grid;place-items:center;flex:none}
+.teamsbox b{font-size:17px;color:var(--navy);font-weight:500}.teamsbox p{margin:4px 0 0;font-size:14px;color:#3b4a63}
+.make-old[hidden]{display:none!important}
 </style>
 </head>
 <body>
@@ -1445,7 +1449,7 @@ let selB=null;
 R.make=()=>{
  if(!S.mark)S.mark={};if(!S.build)S.build=TEMPLATES.blank.b();if(!S.mtab||S.mtab==="mark")S.mtab="paper";if(!S.cons)S.cons=[];
  $("#v-make").innerHTML=`<h1>Design a fix</h1>
- <p class="lead">Pick one problem. Fix it your way.</p>
+ <p class="lead">Pick one problem, sketch a fix, paste it in Teams.</p>
  <h2>1. Pick what to fix</h2>
  <div class="lists" id="lists"></div>
  <div class="teambar" hidden>${CONFIG.SHEET?`<a class="btn s sm" href="${esc(CONFIG.SHEET)}" target="_blank" rel="noopener">👥 See everyone's critiques</a>`:`<span class="btn s sm" style="opacity:.6;cursor:default">👥 Team sheet link coming</span>`}
@@ -1457,7 +1461,10 @@ R.make=()=>{
  <div class="jpick" id="fj" style="margin-top:10px">${Object.entries(FIXJ).map(([k,j])=>`<button class="chip" data-j="${k}">${j.n}</button>`).join("")}</div>
  <div class="fgrid" id="fgrid"></div></details>
  <div class="cons" id="cons" hidden>${CONSTRAINTS.map((c,i)=>`<button class="con" data-i="${i}" aria-pressed="${S.cons.includes(i)}" title="${esc(c[2])}"><em>${c[0]}</em><b>${esc(c[1])}</b></button>`).join("")}</div>
- <h2>2. Design it</h2>
+ <h2>2. Share it in Teams</h2>
+ <div class="teamsbox"><div class="tb-ic">💬</div><div><b>Paste your sketches, designs or ideas directly in Teams</b>
+  <p>A photo of a paper sketch, a screenshot, a Figma link or a few words all work. Say which problem it fixes.</p></div></div>
+ <div class="make-old" hidden>
  <div class="tabs" id="mtabs"><button data-t="paper">📷 Paper or other tool</button><button data-t="ai">🤖 Ask any AI</button><button data-t="build">🧱 Rebuild it</button></div>
  <div id="tab-mark" class="tabp" style="display:none" hidden><div class="padwrap"><div class="phone" style="width:300px"><div class="scr"><canvas id="mcv"></canvas></div></div>
   <div><div class="tools" id="mtools"><button class="tool" data-c="#e2483d" aria-pressed="true"><span class="sw" style="background:#e2483d"></span> Red pen</button><button class="tool" data-c="#0f8a5f"><span class="sw" style="background:#0f8a5f"></span> Green</button><button class="tool" data-c="#0e2a47"><span class="sw" style="background:#0e2a47"></span> Navy</button><button class="tool" data-c="#ffd34d" data-w="16"><span class="sw" style="background:#ffd34d"></span> Highlight</button><button class="tool" data-c="erase">🧽 Eraser</button><button class="tool" data-c="text">🗒 Note</button></div>
@@ -1476,7 +1483,7 @@ R.make=()=>{
  <div id="tab-paper" class="tabp"><div class="padwrap"><div class="phone" style="width:300px"><div class="scr" id="upv" style="display:grid;place-items:center;color:var(--muted);font-size:13px;text-align:center;padding:20px">No image yet</div></div>
   <div><p>Sketch on paper or use any tool. Add a photo.</p>
   <label class="btn p" style="cursor:pointer">📷 Add a photo or screenshot<input type="file" id="upf" accept="image/*" style="display:none"></label> <button class="btn s" id="upx">Remove</button>
-  <label class="fl" for="ulink">Link to a prototype (optional)</label><input type="text" id="ulink" placeholder="https://…" value="${esc((S.card||{}).link||"")}"></div></div></div>
+  <label class="fl" for="ulink">Link to a prototype (optional)</label><input type="text" id="ulink" placeholder="https://…" value="${esc((S.card||{}).link||"")}"></div></div></div></div>
 `;
  // pick screen
  if(!S.fixJ||!FIXJ[S.fixJ])S.fixJ=(S.fix&&S.fix)?jOf(S.fix):(PR&&jBase(PR.j))||"india";
