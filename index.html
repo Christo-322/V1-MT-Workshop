@@ -768,6 +768,7 @@ const CONFIG={deadline:"[deadline to confirm]",chat:"the MT workshop team chat",
  /* Numbers per screen from CleverTap, for the Data room. users = people who saw the screen (for error screens: times shown).
     e.g. lv19:{users:12000}, lv18:{users:5400}, lv12:{users:830,note:"Mostly 10-character codes"} */
  SCREEN_DATA:{
+  dash:{users:1407052,drop:.85,note:"Only 15% (215,017) tap the middle nav. Check the click is filtered to Send Money"},
   lv18:{users:123641,drop:.41,note:"Many of these picked wallet or cash pickup instead"},
   lv17:{users:72776,drop:.27},
   lv15:{users:52088,drop:.03},
@@ -776,7 +777,7 @@ const CONFIG={deadline:"[deadline to confirm]",chat:"the MT workshop team chat",
   lv05:{users:28467,drop:.28,note:"15% never tap Continue; 16% more stop before Summary loads"},
   lv01:{users:20483,drop:.13,note:"17,824 tapped Make transfer"},
   "27906":{note:"OTP and success not tracked in this funnel yet"}},
- DATA_NOTE:"CleverTap · India new receiver funnel",
+ DATA_NOTE:"CleverTap · dashboard + India new receiver funnel",
  DATA_PERIOD:"[period to confirm]",
  /* Funnel screenshot for Inspire, e.g. "img/data/funnel.jpg" */
  FUNNEL:"",
@@ -1236,7 +1237,7 @@ window.addEventListener("resize",()=>{try{stageScale();}catch(e){}});
 const DTOG=[["users","👥","People reached"],["drop","📉","Drop-off here"],["errors","⚠️","Errors shown"],["shot","🖼","CleverTap view"]];
 function screenStats(id){const D=CONFIG.SCREEN_DATA||{},U=k=>(D[k]||{}).users;const st=funnelOf(jBase(PR.j));
  let k=st.findIndex(x=>x.id===id);let isErr=false;if(k<0){k=st.findIndex(x=>x.errs.some(e=>e.id===id));isErr=k>=0;}
- if(k<0)return {known:false};const step=st[k],nx=st[k+1];const u=U(id),un=nx?U(nx.id):null;
+ if(k<0)return D[id]?{known:true,isErr:false,users:D[id].users,drop:D[id].drop,errs:[],note:D[id].note}:{known:false};const step=st[k],nx=st[k+1];const u=U(id),un=nx?U(nx.id):null;
  return {known:true,isErr,users:u,drop:(D[id]||{}).drop!=null?D[id].drop:(!isErr&&u&&un!=null)?(u-un)/u:null,errs:step.errs.map(e=>({c:e.c.replace(/^Error: /,""),n:U(e.id)})),note:(D[id]||{}).note};}
 function paintData(){const el=$("#pdata"),tg=$("#dtogs");if(!el||!tg)return;if(!S.dtog)S.dtog={users:1,drop:1,errors:1,shot:0};
  tg.innerHTML=DTOG.map(([k,ic,l])=>`<button class="dtog" role="switch" aria-checked="${!!S.dtog[k]}" data-k="${k}"><span class="sw"></span>${ic} ${l}</button>`).join("");
